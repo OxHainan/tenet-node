@@ -1,0 +1,173 @@
+[workspace]
+members = ["runtime", "node", "client/executor"]
+
+resolver = "2"
+
+[workspace.package]
+authors = ["Tenet Network <yingjun@oxhainan.org>"]
+edition = "2021"
+repository = "https://github.com/Oxhainan/tenet/"
+
+[workspace.dependencies]
+scale-codec = { package = "parity-scale-codec", version = "3.6.9", default-features = false, features = [
+    "derive",
+] }
+scale-info = { version = "2.9.0", default-features = false, features = [
+    "derive",
+] }
+
+async-trait = "0.1"
+bn = { package = "substrate-bn", version = "0.6", default-features = false }
+clap = { version = "4.4.3", features = ["derive", "deprecated"] }
+derive_more = "0.99"
+environmental = { version = "1.1.4", default-features = false }
+ethereum = { version = "0.15.0", default-features = false }
+ethereum-types = { version = "0.14.1", default-features = false }
+evm = { version = "0.41.1", default-features = false }
+futures = "0.3.28"
+hash-db = { version = "0.16.0", default-features = false }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
+hex-literal = "0.4.1"
+impl-serde = { version = "0.4.0", default-features = false }
+impl-trait-for-tuples = "0.2.1"
+jsonrpsee = "0.16.3"
+kvdb-rocksdb = "0.19.0"
+libsecp256k1 = { version = "0.7.1", default-features = false }
+log = { version = "0.4.20", default-features = false }
+num_enum = { version = "0.7.0", default-features = false }
+parity-db = "0.4.12"
+parking_lot = "0.12.1"
+rlp = { version = "0.5.2", default-features = false }
+serde = { version = "1.0", default-features = false, features = [
+    "derive",
+    "alloc",
+] }
+serde_json = "1.0"
+similar-asserts = "1.1.0"
+sqlx = { version = "0.7.1", default-features = false, features = ["macros"] }
+thiserror = "1.0"
+tokio = "1.32.0"
+
+sp-api = { version = "23.0.0", default-features = false }
+sp-core = { version = "25.0.0", default-features = false }
+sp-std = { version = "12.0.0", default-features = false }
+sp-io = { version = "27.0.0", default-features = false }
+sp-version = { version = "26.0.0", default-features = false }
+sp-externalities = { version = "0.23.0", default-features = false }
+sp-panic-handler = { version = "12.0.0", default-features = false }
+sp-runtime-interface = { version = "21.0.0", default-features = false }
+sp-runtime = { version = "28.0.0", default-features = false }
+sp-trie = { version = "26.0.0", default-features = false }
+sp-wasm-interface = { version = "18.0.0", default-features = false }
+sp-maybe-compressed-blob = { version = "9.0.0", default-features = false }
+sp-state-machine = { version = "0.32", default-features = false }
+sp-tracing = { version = "14.0.0", default-features = false }
+sp-block-builder = { version = "23.0.0", default-features = false }
+sp-consensus-aura = { version = "0.29", default-features = false }
+sp-inherents = { version = "23.0.0", default-features = false }
+sp-session = { version = "24.0.0", default-features = false }
+sp-transaction-pool = { version = "23.0.0", default-features = false }
+sp-blockchain = { version = "25.0.0" }
+sp-consensus-grandpa = { version = "10.0.0", default-features = false }
+sp-timestamp = { version = "23.0.0", default-features = false }
+
+# Substrate Client
+sc-allocator = { version = "20.0.0", default-features = false }
+sc-basic-authorship = { version = "0.31.0" }
+sc-block-builder = { version = "0.30.0" }
+sc-chain-spec = { version = "24.0.0" }
+sc-cli = { version = "0.33.0", default-features = false }
+sc-client-api = { version = "25.0.0" }
+sc-client-db = { version = "0.32.0", default-features = false }
+sc-consensus = { version = "0.30.0" }
+sc-consensus-aura = { version = "0.31.0" }
+sc-consensus-grandpa = { version = "0.16.0" }
+sc-consensus-manual-seal = { version = "0.32.0" }
+sc-executor = { version = "0.29.0", default-features = false }
+sc-executor-common = { version = "0.26.0", default-features = false }
+sc-executor-wasmtime = { version = "0.26.0", default-features = false }
+sc-keystore = { version = "24.0.0" }
+sc-network = { version = "0.31.0" }
+sc-network-common = { version = "0.30.0" }
+sc-network-sync = { version = "0.30.0" }
+sc-offchain = { version = "26.0.0" }
+sc-rpc = { version = "26.0.0" }
+sc-rpc-api = { version = "0.30.0" }
+sc-service = { version = "0.32.0", default-features = false }
+sc-telemetry = { version = "12.0.0" }
+sc-tracing = { version = "25.0.0", default-features = false }
+sc-transaction-pool = { version = "25.0.0" }
+sc-transaction-pool-api = { version = "25.0.0" }
+sc-utils = { version = "11.0.0" }
+
+# Substrate Utility
+prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.16.0" }
+substrate-build-script-utils = { version = "10.0.0" }
+substrate-frame-rpc-system = { version = "25.0.0" }
+substrate-test-runtime = { version = "2.0.0", default-features = false }
+# substrate-test-runtime-client = { version = "2.0.0" }
+substrate-wasm-builder = { version = "14.0.0" }
+
+frame-executive = { version = "25.0.0", default-features = false }
+frame-support = { version = "25.0.0", default-features = false }
+frame-system = { version = "25.0.0", default-features = false }
+frame-system-benchmarking = { version = "25.0.0", default-features = false }
+frame-system-rpc-runtime-api = { version = "23.0.0", default-features = false }
+pallet-aura = { version = "24.0.0", default-features = false }
+pallet-balances = { version = "25.0.0", default-features = false }
+pallet-grandpa = { version = "25.0.0", default-features = false }
+pallet-sudo = { version = "25.0.0", default-features = false }
+pallet-timestamp = { version = "24.0.0", default-features = false }
+pallet-transaction-payment = { version = "25.0.0", default-features = false }
+pallet-transaction-payment-rpc = { version = "27.0.0" }
+pallet-transaction-payment-rpc-runtime-api = { version = "25.0.0", default-features = false }
+pallet-utility = { version = "25.0.0", default-features = false }
+
+# Frontier Client
+fc-api = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet" }
+fc-cli = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fc-consensus = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet" }
+fc-db = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fc-rpc = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet" }
+fc-storage = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet" }
+# Frontier Primitive
+fp-account = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-consensus = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-dynamic-fee = { version = "1.0.0", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-ethereum = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-evm = { version = "3.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-rpc = { version = "3.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+fp-storage = { version = "2.0.0", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+# Frontier FRAME
+pallet-base-fee = { version = "1.0.0", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-dynamic-fee = { version = "4.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-evm = { version = "6.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-evm-chain-id = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+pallet-evm-test-vector-support = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet" }
+pallet-hotfix-sufficients = { version = "1.0.0", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
+
+tenet-runtime = { version = "1.0.0-dev", path = "runtime" }
+
+[patch.crates-io]
+sc-executor = { path = "client/executor" }
+
+[profile.release]
+# Substrate runtime requires unwinding.
+panic = "unwind"
+
+[profile.production]
+inherits = "release"
+
+# Sacrifice compile speed for execution speed by using optimization flags:
+
+# https://doc.rust-lang.org/rustc/linker-plugin-lto.html
+lto = "fat"
+# https://doc.rust-lang.org/rustc/codegen-options/index.html#codegen-units
+codegen-units = 1
