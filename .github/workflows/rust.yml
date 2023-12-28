@@ -26,8 +26,10 @@ jobs:
       uses: arduino/setup-protoc@v2
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build
-      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --release --locked --verbose --all
+    - name: Build node
+      run: cargo build --release --locked --verbose
 
   lint:
     name: 'Run lints'
@@ -57,4 +59,4 @@ jobs:
     - name: Rustfmt
       run: cargo fmt --all -- --check
     - name: Clippy
-      run: cargo clippy --release --all -- -D warnings
+      run: cargo clippy --release --all --tests -- -D warnings
