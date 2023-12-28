@@ -404,7 +404,10 @@ mod output_validity {
 		_params: *const u8,
 		_len: usize,
 	) -> u64 {
-		pack_ptr_and_len((core::arch::wasm32::memory_size(0) * WASM_PAGE_SIZE) as u32, 1)
+		pack_ptr_and_len(
+			(core::arch::wasm32::memory_size(0) * WASM_PAGE_SIZE) as u32,
+			1,
+		)
 	}
 
 	// Returns an output that overflows the u32 range. It should result in an error.

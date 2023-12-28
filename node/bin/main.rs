@@ -3,5 +3,5 @@
 #![warn(missing_docs)]
 
 fn main() -> sc_cli::Result<()> {
-    tenet_node::run()
+	tenet_node::run()
 }

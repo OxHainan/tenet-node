@@ -79,7 +79,7 @@ pub trait NativeExecutionDispatch: Send + Sync {
 }
 
 fn unwrap_heap_pages(pages: Option<HeapAllocStrategy>) -> HeapAllocStrategy {
-	pages.unwrap_or_else(|| DEFAULT_HEAP_ALLOC_STRATEGY)
+	pages.unwrap_or(DEFAULT_HEAP_ALLOC_STRATEGY)
 }
 
 /// Builder for creating a [`WasmExecutor`] instance.
@@ -93,6 +93,12 @@ pub struct WasmExecutorBuilder<H> {
 	cache_path: Option<PathBuf>,
 	allow_missing_host_functions: bool,
 	runtime_cache_size: u8,
+}
+
+impl<H> Default for WasmExecutorBuilder<H> {
+	fn default() -> Self {
+		Self::new()
+	}
 }
 
 impl<H> WasmExecutorBuilder<H> {

@@ -118,11 +118,12 @@ fn call_not_existing_function(wasm_method: WasmExecutionMethod) {
 	match call_in_wasm("test_calling_missing_external", &[], wasm_method, &mut ext).unwrap_err() {
 		Error::AbortedDueToTrap(error) => {
 			let expected = match wasm_method {
-				WasmExecutionMethod::Compiled { .. } =>
-					"call to a missing function env:missing_external",
+				WasmExecutionMethod::Compiled { .. } => {
+					"call to a missing function env:missing_external"
+				}
 			};
 			assert_eq!(error.message, expected);
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
@@ -132,16 +133,22 @@ fn call_yet_another_not_existing_function(wasm_method: WasmExecutionMethod) {
 	let mut ext = TestExternalities::default();
 	let mut ext = ext.ext();
 
-	match call_in_wasm("test_calling_yet_another_missing_external", &[], wasm_method, &mut ext)
-		.unwrap_err()
+	match call_in_wasm(
+		"test_calling_yet_another_missing_external",
+		&[],
+		wasm_method,
+		&mut ext,
+	)
+	.unwrap_err()
 	{
 		Error::AbortedDueToTrap(error) => {
 			let expected = match wasm_method {
-				WasmExecutionMethod::Compiled { .. } =>
-					"call to a missing function env:yet_another_missing_external",
+				WasmExecutionMethod::Compiled { .. } => {
+					"call to a missing function env:yet_another_missing_external"
+				}
 			};
 			assert_eq!(error.message, expected);
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
@@ -155,9 +162,17 @@ fn panicking_should_work(wasm_method: WasmExecutionMethod) {
 	assert!(output.is_err());
 
 	let output = call_in_wasm("test_conditional_panic", &[0], wasm_method, &mut ext);
-	assert_eq!(Decode::decode(&mut &output.unwrap()[..]), Ok(Vec::<u8>::new()));
+	assert_eq!(
+		Decode::decode(&mut &output.unwrap()[..]),
+		Ok(Vec::<u8>::new())
+	);
 
-	let output = call_in_wasm("test_conditional_panic", &vec![2].encode(), wasm_method, &mut ext);
+	let output = call_in_wasm(
+		"test_conditional_panic",
+		&vec![2].encode(),
+		wasm_method,
+		&mut ext,
+	);
 	assert!(output.is_err());
 }
 
@@ -200,9 +215,13 @@ fn clear_prefix_should_work(wasm_method: WasmExecutionMethod) {
 		ext.set_storage(b"bbb".to_vec(), b"5".to_vec());
 
 		// This will clear all entries which prefix is "ab".
-		let output =
-			call_in_wasm("test_clear_prefix", &b"ab".to_vec().encode(), wasm_method, &mut ext)
-				.unwrap();
+		let output = call_in_wasm(
+			"test_clear_prefix",
+			&b"ab".to_vec().encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap();
 
 		assert_eq!(output, b"all ok!".to_vec().encode());
 	}
@@ -227,8 +246,13 @@ fn blake2_256_should_work(wasm_method: WasmExecutionMethod) {
 		blake2_256(&b""[..]).to_vec().encode(),
 	);
 	assert_eq!(
-		call_in_wasm("test_blake2_256", &b"Hello world!".to_vec().encode(), wasm_method, &mut ext,)
-			.unwrap(),
+		call_in_wasm(
+			"test_blake2_256",
+			&b"Hello world!".to_vec().encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		blake2_256(&b"Hello world!"[..]).to_vec().encode(),
 	);
 }
@@ -242,8 +266,13 @@ fn blake2_128_should_work(wasm_method: WasmExecutionMethod) {
 		blake2_128(&b""[..]).to_vec().encode(),
 	);
 	assert_eq!(
-		call_in_wasm("test_blake2_128", &b"Hello world!".to_vec().encode(), wasm_method, &mut ext,)
-			.unwrap(),
+		call_in_wasm(
+			"test_blake2_128",
+			&b"Hello world!".to_vec().encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		blake2_128(&b"Hello world!"[..]).to_vec().encode(),
 	);
 }
@@ -260,8 +289,13 @@ fn sha2_256_should_work(wasm_method: WasmExecutionMethod) {
 		.encode(),
 	);
 	assert_eq!(
-		call_in_wasm("test_sha2_256", &b"Hello world!".to_vec().encode(), wasm_method, &mut ext,)
-			.unwrap(),
+		call_in_wasm(
+			"test_sha2_256",
+			&b"Hello world!".to_vec().encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		array_bytes::hex2bytes_unchecked(
 			"c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a"
 		)
@@ -281,8 +315,13 @@ fn twox_256_should_work(wasm_method: WasmExecutionMethod) {
 		.encode(),
 	);
 	assert_eq!(
-		call_in_wasm("test_twox_256", &b"Hello world!".to_vec().encode(), wasm_method, &mut ext,)
-			.unwrap(),
+		call_in_wasm(
+			"test_twox_256",
+			&b"Hello world!".to_vec().encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		array_bytes::hex2bytes_unchecked(
 			"b27dfd7f223f177f2a13647b533599af0c07f68bda23d96d059da2b451a35a74"
 		)
@@ -299,8 +338,13 @@ fn twox_128_should_work(wasm_method: WasmExecutionMethod) {
 		array_bytes::hex2bytes_unchecked("99e9d85137db46ef4bbea33613baafd5").encode(),
 	);
 	assert_eq!(
-		call_in_wasm("test_twox_128", &b"Hello world!".to_vec().encode(), wasm_method, &mut ext,)
-			.unwrap(),
+		call_in_wasm(
+			"test_twox_128",
+			&b"Hello world!".to_vec().encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		array_bytes::hex2bytes_unchecked("b27dfd7f223f177f2a13647b533599af").encode(),
 	);
 }
@@ -316,7 +360,13 @@ fn ed25519_verify_should_work(wasm_method: WasmExecutionMethod) {
 	calldata.extend_from_slice(sig.as_ref());
 
 	assert_eq!(
-		call_in_wasm("test_ed25519_verify", &calldata.encode(), wasm_method, &mut ext,).unwrap(),
+		call_in_wasm(
+			"test_ed25519_verify",
+			&calldata.encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		true.encode(),
 	);
 
@@ -326,7 +376,13 @@ fn ed25519_verify_should_work(wasm_method: WasmExecutionMethod) {
 	calldata.extend_from_slice(other_sig.as_ref());
 
 	assert_eq!(
-		call_in_wasm("test_ed25519_verify", &calldata.encode(), wasm_method, &mut ext,).unwrap(),
+		call_in_wasm(
+			"test_ed25519_verify",
+			&calldata.encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		false.encode(),
 	);
 }
@@ -342,7 +398,13 @@ fn sr25519_verify_should_work(wasm_method: WasmExecutionMethod) {
 	calldata.extend_from_slice(sig.as_ref());
 
 	assert_eq!(
-		call_in_wasm("test_sr25519_verify", &calldata.encode(), wasm_method, &mut ext,).unwrap(),
+		call_in_wasm(
+			"test_sr25519_verify",
+			&calldata.encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		true.encode(),
 	);
 
@@ -352,7 +414,13 @@ fn sr25519_verify_should_work(wasm_method: WasmExecutionMethod) {
 	calldata.extend_from_slice(other_sig.as_ref());
 
 	assert_eq!(
-		call_in_wasm("test_sr25519_verify", &calldata.encode(), wasm_method, &mut ext,).unwrap(),
+		call_in_wasm(
+			"test_sr25519_verify",
+			&calldata.encode(),
+			wasm_method,
+			&mut ext,
+		)
+		.unwrap(),
 		false.encode(),
 	);
 }
@@ -363,7 +431,9 @@ fn ordered_trie_root_should_work(wasm_method: WasmExecutionMethod) {
 	let trie_input = vec![b"zero".to_vec(), b"one".to_vec(), b"two".to_vec()];
 	assert_eq!(
 		call_in_wasm("test_ordered_trie_root", &[0], wasm_method, &mut ext.ext(),).unwrap(),
-		Layout::<BlakeTwo256>::ordered_trie_root(trie_input.iter()).as_bytes().encode(),
+		Layout::<BlakeTwo256>::ordered_trie_root(trie_input.iter())
+			.as_bytes()
+			.encode(),
 	);
 }
 
@@ -380,7 +450,10 @@ fn offchain_index(wasm_method: WasmExecutionMethod) {
 		.clone()
 		.offchain_drain_committed()
 		.find(|(k, _v)| k == &(sp_core::offchain::STORAGE_PREFIX.to_vec(), b"k".to_vec()));
-	assert_eq!(data.map(|data| data.1), Some(OffchainOverlayedChange::SetValue(b"v".to_vec())));
+	assert_eq!(
+		data.map(|data| data.1),
+		Some(OffchainOverlayedChange::SetValue(b"v".to_vec()))
+	);
 }
 
 test_wasm_execution!(offchain_local_storage_should_work);
@@ -390,7 +463,13 @@ fn offchain_local_storage_should_work(wasm_method: WasmExecutionMethod) {
 	ext.register_extension(OffchainDbExt::new(offchain.clone()));
 	ext.register_extension(OffchainWorkerExt::new(offchain));
 	assert_eq!(
-		call_in_wasm("test_offchain_local_storage", &[0], wasm_method, &mut ext.ext(),).unwrap(),
+		call_in_wasm(
+			"test_offchain_local_storage",
+			&[0],
+			wasm_method,
+			&mut ext.ext(),
+		)
+		.unwrap(),
 		true.encode(),
 	);
 	assert_eq!(state.read().persistent_storage.get(b"test"), Some(vec![]));
@@ -446,7 +525,7 @@ fn should_trap_when_heap_exhausted(wasm_method: WasmExecutionMethod) {
 				error.message,
 				r#"host code panicked while being called by the runtime: Failed to allocate memory: "Allocator ran out of space""#
 			);
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
@@ -470,33 +549,49 @@ fn mk_test_runtime(
 
 test_wasm_execution!(returns_mutable_static);
 fn returns_mutable_static(wasm_method: WasmExecutionMethod) {
-	let runtime =
-		mk_test_runtime(wasm_method, HeapAllocStrategy::Dynamic { maximum_pages: Some(1024) });
+	let runtime = mk_test_runtime(
+		wasm_method,
+		HeapAllocStrategy::Dynamic {
+			maximum_pages: Some(1024),
+		},
+	);
 
 	let mut instance = runtime.new_instance().unwrap();
-	let res = instance.call_export("returns_mutable_static", &[0]).unwrap();
+	let res = instance
+		.call_export("returns_mutable_static", &[0])
+		.unwrap();
 	assert_eq!(33, u64::decode(&mut &res[..]).unwrap());
 
 	// We expect that every invocation will need to return the initial
 	// value plus one. If the value increases more than that then it is
 	// a sign that the wasm runtime preserves the memory content.
-	let res = instance.call_export("returns_mutable_static", &[0]).unwrap();
+	let res = instance
+		.call_export("returns_mutable_static", &[0])
+		.unwrap();
 	assert_eq!(33, u64::decode(&mut &res[..]).unwrap());
 }
 
 test_wasm_execution!(returns_mutable_static_bss);
 fn returns_mutable_static_bss(wasm_method: WasmExecutionMethod) {
-	let runtime =
-		mk_test_runtime(wasm_method, HeapAllocStrategy::Dynamic { maximum_pages: Some(1024) });
+	let runtime = mk_test_runtime(
+		wasm_method,
+		HeapAllocStrategy::Dynamic {
+			maximum_pages: Some(1024),
+		},
+	);
 
 	let mut instance = runtime.new_instance().unwrap();
-	let res = instance.call_export("returns_mutable_static_bss", &[0]).unwrap();
+	let res = instance
+		.call_export("returns_mutable_static_bss", &[0])
+		.unwrap();
 	assert_eq!(1, u64::decode(&mut &res[..]).unwrap());
 
 	// We expect that every invocation will need to return the initial
 	// value plus one. If the value increases more than that then it is
 	// a sign that the wasm runtime preserves the memory content.
-	let res = instance.call_export("returns_mutable_static_bss", &[0]).unwrap();
+	let res = instance
+		.call_export("returns_mutable_static_bss", &[0])
+		.unwrap();
 	assert_eq!(1, u64::decode(&mut &res[..]).unwrap());
 }
 
@@ -516,7 +611,9 @@ fn restoration_of_globals(wasm_method: WasmExecutionMethod) {
 
 	let runtime = mk_test_runtime(
 		wasm_method,
-		HeapAllocStrategy::Static { extra_pages: REQUIRED_MEMORY_PAGES },
+		HeapAllocStrategy::Static {
+			extra_pages: REQUIRED_MEMORY_PAGES,
+		},
 	);
 	let mut instance = runtime.new_instance().unwrap();
 
@@ -582,9 +679,13 @@ fn wasm_tracing_should_work(wasm_method: WasmExecutionMethod) {
 	let handler = TestTraceHandler(traces.clone());
 
 	// Create subscriber with wasm_tracing disabled
-	let test_subscriber = tracing_subscriber::fmt()
-		.finish()
-		.with(sc_tracing::ProfilingLayer::new_with_handler(Box::new(handler), "default"));
+	let test_subscriber =
+		tracing_subscriber::fmt()
+			.finish()
+			.with(sc_tracing::ProfilingLayer::new_with_handler(
+				Box::new(handler),
+				"default",
+			));
 
 	let _guard = tracing::subscriber::set_default(test_subscriber);
 
@@ -610,14 +711,25 @@ fn wasm_tracing_should_work(wasm_method: WasmExecutionMethod) {
 	assert_eq!(span_datum.name, "");
 	assert_eq!(values.bool_values.get("wasm").unwrap(), &true);
 
-	call_in_wasm("test_nested_spans", Default::default(), wasm_method, &mut ext).unwrap();
+	call_in_wasm(
+		"test_nested_spans",
+		Default::default(),
+		wasm_method,
+		&mut ext,
+	)
+	.unwrap();
 	let len = traces.lock().unwrap().len();
 	assert_eq!(len, 2);
 }
 
 test_wasm_execution!(allocate_two_gigabyte);
 fn allocate_two_gigabyte(wasm_method: WasmExecutionMethod) {
-	let runtime = mk_test_runtime(wasm_method, HeapAllocStrategy::Dynamic { maximum_pages: None });
+	let runtime = mk_test_runtime(
+		wasm_method,
+		HeapAllocStrategy::Dynamic {
+			maximum_pages: None,
+		},
+	);
 
 	let mut instance = runtime.new_instance().unwrap();
 	let res = instance.call_export("allocate_two_gigabyte", &[0]).unwrap();
@@ -686,7 +798,9 @@ fn memory_is_cleared_between_invocations(wasm_method: WasmExecutionMethod) {
 
 	let runtime = crate::wasm_runtime::create_wasm_runtime_with_code::<HostFunctions>(
 		wasm_method,
-		HeapAllocStrategy::Dynamic { maximum_pages: Some(1024) },
+		HeapAllocStrategy::Dynamic {
+			maximum_pages: Some(1024),
+		},
 		RuntimeBlob::uncompress_if_needed(&binary[..]).unwrap(),
 		true,
 		None,
@@ -694,10 +808,14 @@ fn memory_is_cleared_between_invocations(wasm_method: WasmExecutionMethod) {
 	.unwrap();
 
 	let mut instance = runtime.new_instance().unwrap();
-	let res = instance.call_export("returns_no_bss_mutable_static", &[0]).unwrap();
+	let res = instance
+		.call_export("returns_no_bss_mutable_static", &[0])
+		.unwrap();
 	assert_eq!(1, u64::decode(&mut &res[..]).unwrap());
 
-	let res = instance.call_export("returns_no_bss_mutable_static", &[0]).unwrap();
+	let res = instance
+		.call_export("returns_no_bss_mutable_static", &[0])
+		.unwrap();
 	assert_eq!(1, u64::decode(&mut &res[..]).unwrap());
 }
 
@@ -739,11 +857,12 @@ fn unreachable_intrinsic(wasm_method: WasmExecutionMethod) {
 	match call_in_wasm("test_unreachable_intrinsic", &[], wasm_method, &mut ext).unwrap_err() {
 		Error::AbortedDueToTrap(error) => {
 			let expected = match wasm_method {
-				WasmExecutionMethod::Compiled { .. } =>
-					"wasm trap: wasm `unreachable` instruction executed",
+				WasmExecutionMethod::Compiled { .. } => {
+					"wasm trap: wasm `unreachable` instruction executed"
+				}
 			};
 			assert_eq!(error.message, expected);
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
@@ -767,7 +886,7 @@ fn return_huge_len(wasm_method: WasmExecutionMethod) {
 	match call_in_wasm("test_return_huge_len", &[], wasm_method, &mut ext).unwrap_err() {
 		Error::OutputExceedsBounds => {
 			assert_matches!(wasm_method, WasmExecutionMethod::Compiled { .. });
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
@@ -788,12 +907,17 @@ fn return_max_memory_offset_plus_one(wasm_method: WasmExecutionMethod) {
 	let mut ext = TestExternalities::default();
 	let mut ext = ext.ext();
 
-	match call_in_wasm("test_return_max_memory_offset_plus_one", &[], wasm_method, &mut ext)
-		.unwrap_err()
+	match call_in_wasm(
+		"test_return_max_memory_offset_plus_one",
+		&[],
+		wasm_method,
+		&mut ext,
+	)
+	.unwrap_err()
 	{
 		Error::OutputExceedsBounds => {
 			assert_matches!(wasm_method, WasmExecutionMethod::Compiled { .. });
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
@@ -806,7 +930,7 @@ fn return_overflow(wasm_method: WasmExecutionMethod) {
 	match call_in_wasm("test_return_overflow", &[], wasm_method, &mut ext).unwrap_err() {
 		Error::OutputExceedsBounds => {
 			assert_matches!(wasm_method, WasmExecutionMethod::Compiled { .. });
-		},
+		}
 		error => panic!("unexpected error: {:?}", error),
 	}
 }
