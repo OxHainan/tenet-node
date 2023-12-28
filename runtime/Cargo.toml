@@ -3,8 +3,6 @@ name = "tenet-runtime"
 version = "1.0.0-dev"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 scale-codec = { workspace = true }
 scale-info = { workspace = true }
@@ -22,6 +20,9 @@ sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
 
 # Substrate FRAME
+frame-executive = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-aura = { workspace = true }
 pallet-balances = { workspace = true }
@@ -30,9 +31,6 @@ pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
-frame-executive = { workspace = true }
-frame-support = { workspace = true }
-frame-system = { workspace = true }
 
 # Frontier
 fp-account = { workspace = true, features = ["serde"] }
@@ -57,46 +55,46 @@ with-rocksdb-weights = []
 with-paritydb-weights = []
 
 std = [
-    "scale-codec/std",
-    "scale-info/std",
-    # Substrate
-    "sp-api/std",
-    "sp-block-builder/std",
-    "sp-consensus-aura/std",
-    "sp-core/std",
-    "sp-inherents/std",
-    "sp-runtime/std",
-    "sp-session/std",
-    "sp-std/std",
-    "sp-transaction-pool/std",
-    "sp-version/std",
+	"scale-codec/std",
+	"scale-info/std",
+	# Substrate
+	"sp-api/std",
+	"sp-block-builder/std",
+	"sp-consensus-aura/std",
+	"sp-core/std",
+	"sp-inherents/std",
+	"sp-runtime/std",
+	"sp-session/std",
+	"sp-std/std",
+	"sp-transaction-pool/std",
+	"sp-version/std",
 
-    # Substrate FRAME
-    "frame-executive/std",
-    "frame-support/std",
-    "frame-system/std",
-    "frame-system-rpc-runtime-api/std",
-    "pallet-aura/std",
-    "pallet-balances/std",
-    "pallet-grandpa/std",
-    "pallet-sudo/std",
-    "pallet-timestamp/std",
-    "pallet-transaction-payment/std",
-    "pallet-transaction-payment-rpc-runtime-api/std",
+	# Substrate FRAME
+	"frame-executive/std",
+	"frame-support/std",
+	"frame-system/std",
+	"frame-system-rpc-runtime-api/std",
+	"pallet-aura/std",
+	"pallet-balances/std",
+	"pallet-grandpa/std",
+	"pallet-sudo/std",
+	"pallet-timestamp/std",
+	"pallet-transaction-payment/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
 
-    # Frontier
-    "fp-account/std",
-    "fp-evm/std",
-    "fp-rpc/std",
-    "fp-self-contained/std",
-    # Frontier FRAME
-    "pallet-base-fee/std",
-    "pallet-dynamic-fee/std",
-    "pallet-ethereum/std",
-    "pallet-evm/std",
-    "pallet-evm-chain-id/std",
-    "pallet-evm-precompile-modexp/std",
-    "pallet-evm-precompile-sha3fips/std",
-    "pallet-evm-precompile-simple/std",
-    "pallet-hotfix-sufficients/std",
+	# Frontier
+	"fp-account/std",
+	"fp-evm/std",
+	"fp-rpc/std",
+	"fp-self-contained/std",
+	# Frontier FRAME
+	"pallet-base-fee/std",
+	"pallet-dynamic-fee/std",
+	"pallet-ethereum/std",
+	"pallet-evm/std",
+	"pallet-evm-chain-id/std",
+	"pallet-evm-precompile-modexp/std",
+	"pallet-evm-precompile-sha3fips/std",
+	"pallet-evm-precompile-simple/std",
+	"pallet-hotfix-sufficients/std",
 ]
