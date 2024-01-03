@@ -1,5 +1,11 @@
 [workspace]
-members = ["runtime", "node", "client/executor"]
+members = [
+	"bin/runtime",
+	"bin/node",
+	"client/executor",
+	"frame/ethereum",
+	"utils/ethereum",
+]
 
 resolver = "2"
 
@@ -84,8 +90,6 @@ sc-consensus-aura = { version = "0.31.0" }
 sc-consensus-grandpa = { version = "0.16.0" }
 sc-consensus-manual-seal = { version = "0.32.0" }
 sc-executor = { version = "0.29.0", default-features = false }
-sc-executor-common = { version = "0.26.0", default-features = false }
-sc-executor-wasmtime = { version = "0.26.0", default-features = false }
 sc-keystore = { version = "24.0.0" }
 sc-network = { version = "0.31.0" }
 sc-network-common = { version = "0.30.0" }
@@ -144,7 +148,6 @@ fp-storage = { version = "2.0.0", git = "https://github.com/OxHainan/frontier", 
 # Frontier FRAME
 pallet-base-fee = { version = "1.0.0", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
 pallet-dynamic-fee = { version = "4.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
-pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
 pallet-evm = { version = "6.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
 pallet-evm-chain-id = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
 pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
@@ -153,11 +156,13 @@ pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.co
 pallet-evm-test-vector-support = { version = "1.0.0-dev", git = "https://github.com/OxHainan/frontier", branch = "tenet" }
 pallet-hotfix-sufficients = { version = "1.0.0", git = "https://github.com/OxHainan/frontier", branch = "tenet", default-features = false }
 
-tenet-runtime = { version = "1.0.0-dev", path = "runtime" }
+# TENET NODE
+pallet-ethereum = { version = "4.0.0-dev", path = "frame/ethereum", default-features = false }
+tc-executor = { version = "0.29.0", path = "client/executor" }
+tenet-runtime = { version = "1.0.0-dev", path = "bin/runtime" }
 
 [patch.crates-io]
-sc-executor = { path = "client/executor" }
-
+ethereum = { version = "0.15", path = "utils/ethereum" }
 [profile.release]
 # Substrate runtime requires unwinding.
 panic = "unwind"

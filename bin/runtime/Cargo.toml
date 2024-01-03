@@ -1,7 +1,10 @@
 [package]
 name = "tenet-runtime"
 version = "1.0.0-dev"
-edition = "2021"
+publish = false
+authors = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 scale-codec = { workspace = true }

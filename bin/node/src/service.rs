@@ -7,7 +7,6 @@ use futures::{channel::mpsc, prelude::*};
 use prometheus_endpoint::Registry;
 use sc_client_api::BlockBackend;
 use sc_consensus::BasicQueue;
-use sc_executor::NativeExecutionDispatch;
 use sc_network_sync::warp::WarpSyncParams;
 use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
@@ -15,6 +14,7 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::ConstructRuntimeApi;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_core::U256;
+use tc_executor::NativeExecutionDispatch;
 // Runtime
 use tenet_runtime::{opaque::Block, Hash, TransactionConverter};
 
@@ -90,7 +90,8 @@ where
 		})
 		.transpose()?;
 
-	let executor = sc_executor::NativeElseWasmExecutor::new_with_native_executor();
+	// By default, native runtime is selected to start.
+	let executor = tc_executor::NativeElseWasmExecutor::new_with_native_executor();
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(

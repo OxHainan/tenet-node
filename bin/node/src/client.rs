@@ -1,6 +1,6 @@
 // Substrate
-use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use tc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 // Local
 use tenet_runtime::{opaque::Block, AccountId, Balance, Nonce};
 
