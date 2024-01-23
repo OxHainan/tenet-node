@@ -58,5 +58,5 @@ pub enum Subcommand {
 	Revert(sc_cli::RevertCmd),
 
 	/// Db meta columns information.
-	FrontierDb(fc_cli::FrontierDbCmd),
+	FrontierDb(tc_cli::FrontierDbCmd),
 }

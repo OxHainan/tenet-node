@@ -38,8 +38,10 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 # Frontier
 fp-account = { workspace = true, features = ["serde"] }
 fp-evm = { workspace = true, features = ["serde"] }
-fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = ["serde"] }
+
+# Tenet
+tp-rpc = { workspace = true }
 
 # Frontier FRAME
 pallet-base-fee = { workspace = true }
@@ -88,7 +90,7 @@ std = [
 	# Frontier
 	"fp-account/std",
 	"fp-evm/std",
-	"fp-rpc/std",
+
 	"fp-self-contained/std",
 	# Frontier FRAME
 	"pallet-base-fee/std",
@@ -100,4 +102,7 @@ std = [
 	"pallet-evm-precompile-sha3fips/std",
 	"pallet-evm-precompile-simple/std",
 	"pallet-hotfix-sufficients/std",
+
+	# Tenet
+	"tp-rpc/std",
 ]

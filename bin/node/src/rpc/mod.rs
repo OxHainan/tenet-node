@@ -42,14 +42,14 @@ pub struct FullDeps<C, P, A: ChainApi, CT, CIDP> {
 
 pub struct DefaultEthConfig<C, BE>(std::marker::PhantomData<(C, BE)>);
 
-impl<C, BE> fc_rpc::EthConfig<Block, C> for DefaultEthConfig<C, BE>
+impl<C, BE> tc_rpc::EthConfig<Block, C> for DefaultEthConfig<C, BE>
 where
 	C: StorageProvider<Block, BE> + Sync + Send + 'static,
 	BE: Backend<Block> + 'static,
 {
 	type EstimateGasAdapter = ();
 	type RuntimeStorageOverride =
-		fc_rpc::frontier_backend_client::SystemAccountId20StorageOverride<Block, C, BE>;
+		tc_rpc::frontier_backend_client::SystemAccountId20StorageOverride<Block, C, BE>;
 }
 
 /// Instantiate all Full RPC extensions.
@@ -57,8 +57,8 @@ pub fn create_full<C, P, BE, A, CT, CIDP>(
 	deps: FullDeps<C, P, A, CT, CIDP>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	pubsub_notification_sinks: Arc<
-		fc_mapping_sync::EthereumBlockNotificationSinks<
-			fc_mapping_sync::EthereumBlockNotification<Block>,
+		tc_mapping_sync::EthereumBlockNotificationSinks<
+			tc_mapping_sync::EthereumBlockNotification<Block>,
 		>,
 	>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
@@ -68,15 +68,15 @@ where
 	C::Api: sp_consensus_aura::AuraApi<Block, AuraId>,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: fp_rpc::ConvertTransactionRuntimeApi<Block>,
-	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
+	C::Api: tp_rpc::ConvertTransactionRuntimeApi<Block>,
+	C::Api: tp_rpc::EthereumRuntimeRPCApi<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: BlockchainEvents<Block> + AuxStore + UsageProvider<Block> + StorageProvider<Block, BE>,
 	BE: Backend<Block> + 'static,
 	P: TransactionPool<Block = Block> + 'static,
 	A: ChainApi<Block = Block> + 'static,
 	CIDP: CreateInherentDataProviders<Block, ()> + Send + 'static,
-	CT: fp_rpc::ConvertTransaction<<Block as BlockT>::Extrinsic> + Send + Sync + 'static,
+	CT: tp_rpc::ConvertTransaction<<Block as BlockT>::Extrinsic> + Send + Sync + 'static,
 {
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};

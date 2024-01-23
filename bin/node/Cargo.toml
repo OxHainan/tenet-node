@@ -69,17 +69,19 @@ pallet-transaction-payment = { workspace = true }
 
 # Frontier
 fc-api = { workspace = true }
-fc-cli = { workspace = true }
-fc-consensus = { workspace = true }
-fc-db = { workspace = true }
-fc-mapping-sync = { workspace = true }
-fc-rpc = { workspace = true }
-fc-rpc-core = { workspace = true }
-fc-storage = { workspace = true }
 fp-dynamic-fee = { workspace = true, features = ["default"] }
 fp-evm = { workspace = true, features = ["default"] }
-fp-rpc = { workspace = true, features = ["default"] }
+
+# Tenet
+tc-cli = { workspace = true }
+tc-consensus = { workspace = true }
+tc-db = { workspace = true }
+tc-mapping-sync = { workspace = true }
+tc-rpc = { workspace = true }
+tc-rpc-core = { workspace = true }
+tc-storage = { workspace = true }
 tenet-runtime = { workspace = true, features = ["std"] }
+tp-rpc = { workspace = true, features = ["default"] }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
@@ -89,13 +91,12 @@ default = ["with-rocksdb-weights", "rocksdb", "txpool"]
 rocksdb = [
 	"sc-cli/rocksdb",
 	"sc-service/rocksdb",
-	"fc-cli/rocksdb",
-	"fc-db/rocksdb",
-	"fc-mapping-sync/rocksdb",
-	"fc-rpc/rocksdb",
+	"tc-cli/rocksdb",
+	"tc-db/rocksdb",
+	"tc-mapping-sync/rocksdb",
 ]
-sql = ["fc-db/sql", "fc-mapping-sync/sql"]
+sql = ["tc-db/sql", "tc-mapping-sync/sql"]
 with-rocksdb-weights = ["tenet-runtime/with-rocksdb-weights"]
 with-paritydb-weights = ["tenet-runtime/with-paritydb-weights"]
-txpool = ["fc-rpc/txpool"]
-rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
+txpool = ["tc-rpc/txpool"]
+rpc-binary-search-estimate = ["tc-rpc/rpc-binary-search-estimate"]

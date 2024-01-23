@@ -1,0 +1,20 @@
+[package]
+name = "tc-rpc-core"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ethereum-types = { workspace = true }
+fc-rpc-core = { workspace = true }
+jsonrpsee = { workspace = true, features = ["server", "macros"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# Tenet
+tp-ethereum = { workspace = true }
+
+[features]
+txpool = []

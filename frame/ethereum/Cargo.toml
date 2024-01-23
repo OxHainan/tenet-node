@@ -6,11 +6,11 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-ethereum = { workspace = true, features = ["with-codec"] }
 ethereum-types = { workspace = true }
 evm = { workspace = true, features = ["with-codec"] }
 scale-codec = { workspace = true }
 scale-info = { workspace = true }
+tp-ethereum = { workspace = true, features = ["with-codec"] }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -21,14 +21,15 @@ sp-std = { workspace = true }
 fp-consensus = { workspace = true }
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
-fp-rpc = { workspace = true }
 fp-storage = { workspace = true }
 pallet-evm = { workspace = true }
+# Tenet
+tp-rpc = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
-	"ethereum/std",
+	"tp-ethereum/std",
 	"evm/std",
 	"ethereum-types/std",
 	# "rlp/std",
@@ -44,7 +45,7 @@ std = [
 	"fp-consensus/std",
 	"fp-ethereum/std",
 	"fp-evm/std",
-	"fp-rpc/std",
+	"tp-rpc/std",
 	# "fp-self-contained/std",
 	"fp-storage/std",
 	"pallet-evm/std",
