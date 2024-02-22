@@ -14,7 +14,7 @@ jsonrpsee = { workspace = true, features = ["server", "macros"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 # Tenet
+hex = "0.4"
 tp-ethereum = { workspace = true }
-
 [features]
 txpool = []

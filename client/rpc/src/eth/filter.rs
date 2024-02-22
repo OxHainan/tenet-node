@@ -641,6 +641,7 @@ where
 								log_index: Some(U256::from(block_log_index)),
 								transaction_log_index: Some(U256::from(transaction_log_index)),
 								removed: false,
+								proof: None,
 							});
 						}
 						transaction_log_index += 1;
@@ -783,6 +784,7 @@ fn filter_block_logs<'a>(
 				log_index: None,
 				transaction_log_index: None,
 				removed: false,
+				proof: None,
 			};
 			let mut add: bool = true;
 			match (filter.address.clone(), filter.topics.clone()) {

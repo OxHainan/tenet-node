@@ -18,7 +18,7 @@
 
 //! Eth rpc interface.
 
-use ethereum_types::{H160, H256, H64, U256, U64};
+use ethereum_types::{Address, H160, H256, H64, U256, U64};
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use std::collections::BTreeMap;
 
@@ -142,7 +142,11 @@ pub trait EthApi {
 
 	/// Returns transaction receipt by transaction hash.
 	#[method(name = "eth_getTransactionReceipt")]
-	async fn transaction_receipt(&self, hash: H256) -> RpcResult<Option<Receipt>>;
+	async fn transaction_receipt(
+		&self,
+		hash: H256,
+		from: Option<Address>,
+	) -> RpcResult<Option<Receipt>>;
 
 	// ########################################################################
 	// State

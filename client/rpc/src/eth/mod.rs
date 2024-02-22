@@ -432,9 +432,14 @@ where
 			.await
 	}
 
-	async fn transaction_receipt(&self, hash: H256) -> RpcResult<Option<Receipt>> {
+	async fn transaction_receipt(
+		&self,
+		hash: H256,
+		from: Option<ethereum_types::Address>,
+	) -> RpcResult<Option<Receipt>> {
 		let (block_info, index) = self.block_info_by_eth_transaction_hash(hash).await?;
-		self.transaction_receipt(&block_info, hash, index).await
+		self.transaction_receipt(&block_info, hash, index, from)
+			.await
 	}
 
 	// ########################################################################

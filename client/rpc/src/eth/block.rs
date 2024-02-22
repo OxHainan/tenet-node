@@ -226,7 +226,10 @@ where
 			.map(|tx| (tx.transaction_hash, tx.transaction_index as usize))
 			.collect();
 		for (hash, index) in transactions {
-			if let Some(receipt) = self.transaction_receipt(&block_info, hash, index).await? {
+			if let Some(receipt) = self
+				.transaction_receipt(&block_info, hash, index, None)
+				.await?
+			{
 				receipts.push(receipt);
 			}
 		}

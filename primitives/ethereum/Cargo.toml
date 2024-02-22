@@ -21,11 +21,12 @@ scale-info = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
 #Substrate
+sp-core = { workspace = true }
 sp-std = { workspace = true }
 
 [features]
 default = ["std", "with-codec"]
-std = ["scale-codec/std", "rlp/std", "hash-db/std", "sp-std/std"]
+std = ["scale-codec/std", "rlp/std", "hash-db/std", "sp-std/std", "sp-core/std"]
 
 with-codec = [
 	"scale-codec",

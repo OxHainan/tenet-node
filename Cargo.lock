@@ -8784,6 +8784,7 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "fc-rpc-core",
+ "hex",
  "jsonrpsee",
  "serde",
  "serde_json",
@@ -9230,6 +9231,7 @@ dependencies = [
  "rlp",
  "scale-info",
  "serde",
+ "sp-core",
  "sp-std",
 ]
 

@@ -23,7 +23,7 @@ rand = "0.8"
 rlp = { workspace = true }
 scale-codec = { workspace = true }
 schnellru = "0.2.1"
-serde = { workspace = true }
+serde = { workspace = true, optional = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
 tp-ethereum = { workspace = true, features = ["with-codec"] }
@@ -65,5 +65,5 @@ tc-storage = { workspace = true }
 tp-rpc = { workspace = true, features = ["default"] }
 
 [features]
-txpool = ["tc-rpc-core/txpool"]
+txpool = ["tc-rpc-core/txpool", "serde/std"]
 rpc-binary-search-estimate = []

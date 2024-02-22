@@ -157,6 +157,7 @@ impl EthSubscriptionResult {
 						log_index: Some(U256::from(log_index)),
 						transaction_log_index: Some(U256::from(transaction_log_index)),
 						removed: false,
+						proof: None,
 					});
 				}
 				log_index += 1;
@@ -182,6 +183,7 @@ impl EthSubscriptionResult {
 			log_index: None,
 			transaction_log_index: None,
 			removed: false,
+			proof: None,
 		};
 		if params.filter.is_some() {
 			let block_number =

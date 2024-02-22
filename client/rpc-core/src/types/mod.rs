@@ -2,21 +2,29 @@ use ethereum_types::H160;
 pub use fc_rpc_core::types::{
 	AccountInfo, BlockNumberOrHash, Bytes, CallRequest, CallStateOverride, ChainStatus, EthAccount,
 	EthProtocolInfo, ExtAccountInfo, FeeHistory, FeeHistoryCache, FeeHistoryCacheItem,
-	FeeHistoryCacheLimit, Filter, FilterAddress, FilterChanges, FilterPool, FilterPoolItem,
-	FilterType, FilteredParams, Index, LocalTransactionStatus, Log, PeerCount, PeerInfo,
-	PeerNetworkInfo, PeerProtocolsInfo, Peers, PipProtocolInfo, Receipt, RecoveredAccount,
-	StorageProof, SyncInfo, SyncStatus, Topic, TransactionStats, VariadicValue, Work,
+	FeeHistoryCacheLimit, Index, LocalTransactionStatus, PeerCount, PeerInfo, PeerNetworkInfo,
+	PeerProtocolsInfo, Peers, PipProtocolInfo, RecoveredAccount, StorageProof, SyncInfo,
+	SyncStatus, Topic, TransactionStats, VariadicValue, Work,
 };
 
 #[cfg(feature = "txpool")]
 pub use self::txpool::{Summary, TransactionMap, TxPoolResult};
 pub use self::{
 	block::{Block, BlockTransactions, Header, Rich, RichBlock, RichHeader},
+	filter::{
+		Filter, FilterAddress, FilterChanges, FilterPool, FilterPoolItem, FilterType,
+		FilteredParams,
+	},
+	log::Log,
+	receipt::Receipt,
 	transaction::{RichRawTransaction, Transaction},
 	transaction_request::{TransactionMessage, TransactionRequest},
 };
 mod block;
+mod filter;
+mod log;
 pub mod pubsub;
+mod receipt;
 mod transaction;
 mod transaction_request;
 #[cfg(feature = "txpool")]

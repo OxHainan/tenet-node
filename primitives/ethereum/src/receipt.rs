@@ -97,7 +97,6 @@ impl PrivacyEncode for EIP1559ReceiptData {
 	fn encode(&self) -> BytesMut {
 		let logs_root = ethereum::util::ordered_trie_root(self.logs.iter().map(rlp::encode));
 		let mut s = rlp::RlpStream::new_list(4);
-		println!("receipt root: {:?}", logs_root);
 		s.append(&self.status_code);
 		s.append(&self.used_gas);
 		s.append(&self.logs_bloom);
@@ -154,6 +153,12 @@ pub struct Log {
 	pub data: Bytes,
 	pub log_type: Option<LogType>,
 	pub receivers_root: Option<H256>,
+}
+
+impl Log {
+	pub fn filter(&self, target: H256) -> bool {
+		self.topics.iter().any(|topic| topic == &target)
+	}
 }
 
 impl Encodable for Log {
@@ -257,6 +262,9 @@ fn parse_log_type(topics: &[H256], data: &Bytes) -> Option<LogType> {
 }
 
 fn parse_log(topics: &[H256]) -> Option<LogType> {
+	if topics.len() < 2 {
+		return None;
+	}
 	if topics[1] == PERCEPTIBLE {
 		Some(LogType::Perceptible)
 	} else if topics[1] == NON_PERCEPTIBLE {

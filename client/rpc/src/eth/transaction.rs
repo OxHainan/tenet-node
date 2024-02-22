@@ -38,6 +38,8 @@ use crate::{
 	frontier_backend_client, internal_err,
 };
 
+type LogType<'a> = Vec<(usize, &'a tp_ethereum::Log)>;
+
 impl<B, C, P, CT, BE, A, CIDP, EC> Eth<B, C, P, CT, BE, A, CIDP, EC>
 where
 	B: BlockT,
@@ -208,6 +210,7 @@ where
 		block_info: &BlockInfo<B::Hash>,
 		hash: H256,
 		index: usize,
+		from: Option<ethereum_types::Address>,
 	) -> RpcResult<Option<Receipt>> {
 		let BlockInfo {
 			block,
@@ -216,6 +219,7 @@ where
 			substrate_hash,
 			..
 		} = block_info.clone();
+
 		match (block, statuses, receipts) {
 			(Some(block), Some(statuses), Some(receipts)) => {
 				let block_hash = H256::from(keccak_256(&rlp::encode(&block.header)));
@@ -297,7 +301,90 @@ where
 						.min(t.max_fee_per_gas),
 				};
 
-				return Ok(Some(Receipt {
+				let (normal_logs, _percept_logs): (LogType, LogType) = logs
+					.iter()
+					.enumerate()
+					.partition(|(_, log)| log.log_type.is_none());
+
+				let mut pre_receipts_log_index = None;
+				if cumulative_receipts.len() > 0 {
+					cumulative_receipts.truncate(cumulative_receipts.len() - 1);
+					pre_receipts_log_index = Some(
+						cumulative_receipts
+							.iter()
+							.map(|r| match r {
+								tp_ethereum::Receipt::Legacy(d)
+								| tp_ethereum::Receipt::EIP2930(d)
+								| tp_ethereum::Receipt::EIP1559(d) => d.logs.len() as u32,
+							})
+							.sum::<u32>(),
+					);
+				}
+
+				let mut output_logs = normal_logs
+					.iter()
+					.map(|(i, log)| Log {
+						address: log.address,
+						topics: log.topics.clone(),
+						data: Bytes(log.data.clone()),
+						block_hash: Some(block_hash),
+						block_number: Some(block.header.number),
+						transaction_hash: Some(status.transaction_hash),
+						transaction_index: Some(status.transaction_index.into()),
+						log_index: Some(U256::from(
+							(pre_receipts_log_index.unwrap_or(0)) + *i as u32,
+						)),
+						transaction_log_index: Some(U256::from(*i)),
+						removed: false,
+						proof: None,
+					})
+					.collect::<Vec<_>>();
+
+				// Filter logs with from
+				if let Some(_from) = from {
+					let address_bloom_filter =
+						FilteredParams::topics_bloom_filter(&Some(vec![VariadicValue::Single(
+							Some(_from.into()),
+						)]));
+
+					if FilteredParams::topics_in_bloom(logs_bloom, &address_bloom_filter) {
+						let rlp_logs = logs.iter().map(rlp::encode);
+						output_logs.extend(_percept_logs.iter().filter_map(|(i, log)| {
+							if log.filter(_from.into()) {
+								Some(Log {
+									address: log.address,
+									topics: log.topics.clone(),
+									data: Bytes(log.data.clone()),
+									block_hash: Some(block_hash),
+									block_number: Some(block.header.number),
+									transaction_hash: Some(status.transaction_hash),
+									transaction_index: Some(status.transaction_index.into()),
+									log_index: Some(U256::from(
+										(pre_receipts_log_index.unwrap_or(0)) + *i as u32,
+									)),
+									transaction_log_index: Some(U256::from(*i)),
+									removed: false,
+									proof: Some(
+										tp_ethereum::order_generate_proof::<
+											sp_core::KeccakHasher,
+											_,
+											_,
+										>(rlp_logs.clone(), *i)
+										.unwrap()
+										.1
+										.iter()
+										.map(|v| Bytes(v.to_vec()))
+										.collect(),
+									),
+								})
+							} else {
+								None
+							}
+						}))
+					}
+				}
+
+				Ok(Some(Receipt {
 					transaction_hash: Some(status.transaction_hash),
 					transaction_index: Some(status.transaction_index.into()),
 					block_hash: Some(block_hash),
@@ -307,39 +394,7 @@ where
 					cumulative_gas_used,
 					gas_used: Some(gas_used),
 					contract_address: status.contract_address,
-					logs: {
-						let mut pre_receipts_log_index = None;
-						if cumulative_receipts.len() > 0 {
-							cumulative_receipts.truncate(cumulative_receipts.len() - 1);
-							pre_receipts_log_index = Some(
-								cumulative_receipts
-									.iter()
-									.map(|r| match r {
-										tp_ethereum::Receipt::Legacy(d)
-										| tp_ethereum::Receipt::EIP2930(d)
-										| tp_ethereum::Receipt::EIP1559(d) => d.logs.len() as u32,
-									})
-									.sum::<u32>(),
-							);
-						}
-						logs.iter()
-							.enumerate()
-							.map(|(i, log)| Log {
-								address: log.address,
-								topics: log.topics.clone(),
-								data: Bytes(log.data.clone()),
-								block_hash: Some(block_hash),
-								block_number: Some(block.header.number),
-								transaction_hash: Some(status.transaction_hash),
-								transaction_index: Some(status.transaction_index.into()),
-								log_index: Some(U256::from(
-									(pre_receipts_log_index.unwrap_or(0)) + i as u32,
-								)),
-								transaction_log_index: Some(U256::from(i)),
-								removed: false,
-							})
-							.collect()
-					},
+					logs: output_logs,
 					status_code: Some(U64::from(status_code)),
 					logs_bloom,
 					state_root: None,
@@ -349,7 +404,7 @@ where
 						tp_ethereum::Receipt::EIP2930(_) => U256::from(1),
 						tp_ethereum::Receipt::EIP1559(_) => U256::from(2),
 					},
-				}));
+				}))
 			}
 			_ => Ok(None),
 		}
