@@ -42,7 +42,6 @@ use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter};
 // Frontier
 use fp_account::EthereumSignature;
 use fp_evm::weight_per_gas;
-use fp_rpc::TransactionStatus;
 use pallet_ethereum::{
 	Call::transact, PostLogContent, Transaction as EthereumTransaction, TransactionAction,
 	TransactionData,
@@ -50,6 +49,7 @@ use pallet_ethereum::{
 use pallet_evm::{
 	Account as EVMAccount, EnsureAccountId20, FeeCalculator, IdentityAddressMapping, Runner,
 };
+use tp_rpc::TransactionStatus;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_system::Call as SystemCall;
@@ -156,7 +156,7 @@ parameter_types! {
 		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(MAXIMUM_BLOCK_LENGTH, NORMAL_DISPATCH_RATIO);
-	pub const SS58Prefix: u8 = 42;
+	pub const SS58Prefix: u8 = 56;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -420,7 +420,7 @@ construct_runtime!(
 #[derive(Clone)]
 pub struct TransactionConverter;
 
-impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
+impl tp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_unsigned(
 			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
@@ -428,7 +428,7 @@ impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	}
 }
 
-impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
+impl tp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(
 		&self,
 		transaction: pallet_ethereum::Transaction,
@@ -630,7 +630,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
+	impl tp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
 		}
@@ -651,12 +651,6 @@ impl_runtime_apis! {
 
 		fn author() -> H160 {
 			<pallet_evm::Pallet<Runtime>>::find_author()
-		}
-
-		fn storage_at(address: H160, index: U256) -> H256 {
-			let mut tmp = [0u8; 32];
-			index.to_big_endian(&mut tmp);
-			pallet_evm::AccountStorages::<Runtime>::get(address, H256::from_slice(&tmp[..]))
 		}
 
 		fn call(
@@ -817,7 +811,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
+	impl tp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
 		fn convert_transaction(transaction: EthereumTransaction) -> <Block as BlockT>::Extrinsic {
 			UncheckedExtrinsic::new_unsigned(
 				pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),

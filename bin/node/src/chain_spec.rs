@@ -148,7 +148,7 @@ pub fn local_testnet_config() -> ChainSpec {
 					authority_keys_from_seed("Alice"),
 					authority_keys_from_seed("Bob"),
 				],
-				42,
+				1024,
 			)
 		},
 		// Bootnodes
@@ -236,7 +236,7 @@ fn testnet_genesis(
 				);
 				map.insert(
 					// H160 address of CI test runner account
-					H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+					H160::from_str("19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A")
 						.expect("internal H160 is valid; qed"),
 					fp_evm::GenesisAccount {
 						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
@@ -248,13 +248,13 @@ fn testnet_genesis(
 				);
 				map.insert(
 					// H160 address for benchmark usage
-					H160::from_str("1000000000000000000000000000000000000001")
+					H160::from_str("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 						.expect("internal H160 is valid; qed"),
 					fp_evm::GenesisAccount {
 						nonce: U256::from(1),
 						balance: U256::from(1_000_000_000_000_000_000_000_000u128),
 						storage: Default::default(),
-						code: vec![0x00],
+						code: vec![],
 					},
 				);
 				map

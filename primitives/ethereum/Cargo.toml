@@ -1,0 +1,41 @@
+[package]
+name = "tp-ethereum"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bytes = { workspace = true }
+eth_trie = "0.4.0"
+ethereum = { workspace = true }
+ethereum-types = { workspace = true, features = ["rlp", "codec", "scale-info"] }
+hash-db = "0.16"
+hex-literal = "0.4.1"
+lazy_static = "1.4"
+rlp = { workspace = true }
+scale-codec = { workspace = true, optional = true }
+scale-info = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+
+#Substrate
+sp-core = { workspace = true }
+sp-std = { workspace = true }
+
+[features]
+default = ["std", "with-codec"]
+std = ["scale-codec/std", "rlp/std", "hash-db/std", "sp-std/std", "sp-core/std"]
+
+with-codec = [
+	"scale-codec",
+	"scale-info",
+	"ethereum-types/codec",
+	"ethereum/with-codec",
+]
+with-serde = [
+	"serde",
+	"ethereum-types/serialize",
+	"ethereum/with-serde",
+]

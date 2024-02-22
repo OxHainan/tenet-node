@@ -1,0 +1,21 @@
+[package]
+name = "tc-storage"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+ethereum-types = { workspace = true }
+fc-storage = { workspace = true }
+fp-storage = { workspace = true, features = ["default"] }
+sc-client-api = { workspace = true }
+scale-codec = { workspace = true }
+sp-api = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-storage = { workspace = true }
+# Tenet
+tp-ethereum = { workspace = true }
+tp-rpc = { workspace = true, features = ["default"] }

@@ -60,7 +60,7 @@ pub fn new_partial<RuntimeApi, Executor, BIQ>(
 			BoxBlockImport,
 			GrandpaLinkHalf<FullClient<RuntimeApi, Executor>>,
 			FrontierBackend,
-			Arc<fc_rpc::OverrideHandle<Block>>,
+			Arc<tc_storage::OverrideHandle<Block>>,
 		),
 	>,
 	ServiceError,
@@ -119,7 +119,7 @@ where
 
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let frontier_backend = match eth_config.frontier_backend_type {
-		BackendType::KeyValue => FrontierBackend::KeyValue(fc_db::kv::Backend::open(
+		BackendType::KeyValue => FrontierBackend::KeyValue(tc_db::kv::Backend::open(
 			Arc::clone(&client),
 			&config.database,
 			&db_config_dir(config),
@@ -340,13 +340,13 @@ where
 	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
 	// The MappingSyncWorker sends through the channel on block import and the subscription emits a notification to the subscriber on receiving a message through this channel.
 	// This way we avoid race conditions when using native substrate block import notification stream.
-	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
-		fc_mapping_sync::EthereumBlockNotification<Block>,
+	let pubsub_notification_sinks: tc_mapping_sync::EthereumBlockNotificationSinks<
+		tc_mapping_sync::EthereumBlockNotification<Block>,
 	> = Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
 	// for ethereum-compatibility rpc.
-	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+	config.rpc_id_provider = Some(Box::new(tc_rpc::EthereumSubIdProvider));
 
 	let rpc_builder = {
 		let client = client.clone();
@@ -363,7 +363,7 @@ where
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
-		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
+		let block_data_cache = Arc::new(tc_rpc::EthBlockDataCacheTask::new(
 			task_manager.spawn_handle(),
 			overrides.clone(),
 			eth_config.eth_log_block_cache,
@@ -396,9 +396,9 @@ where
 				network: network.clone(),
 				sync: sync_service.clone(),
 				frontier_backend: match frontier_backend.clone() {
-					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					tc_db::Backend::KeyValue(b) => Arc::new(b),
 					#[cfg(feature = "sql")]
-					fc_db::Backend::Sql(b) => Arc::new(b),
+					tc_db::Backend::Sql(b) => Arc::new(b),
 				},
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),

@@ -13,16 +13,16 @@ use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_api::ConstructRuntimeApi;
 use tc_executor::NativeExecutionDispatch;
 // Frontier
-pub use fc_consensus::FrontierBlockImport;
-use fc_rpc::{EthTask, OverrideHandle};
-pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
+pub use tc_consensus::FrontierBlockImport;
+use tc_rpc::{EthTask, OverrideHandle};
+pub use tc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 // Local
 use tenet_runtime::opaque::Block;
 
 use crate::client::{FullBackend, FullClient};
 
 /// Frontier DB backend type.
-pub type FrontierBackend = fc_db::Backend<Block>;
+pub type FrontierBackend = tc_db::Backend<Block>;
 
 pub fn db_config_dir(config: &Configuration) -> PathBuf {
 	config.base_path.config_dir(config.chain_spec.id())
@@ -111,15 +111,15 @@ pub fn new_frontier_partial(
 /// A set of APIs that ethereum-compatible runtimes must implement.
 pub trait EthCompatRuntimeApiCollection:
 	sp_api::ApiExt<Block>
-	+ fp_rpc::ConvertTransactionRuntimeApi<Block>
-	+ fp_rpc::EthereumRuntimeRPCApi<Block>
+	+ tp_rpc::ConvertTransactionRuntimeApi<Block>
+	+ tp_rpc::EthereumRuntimeRPCApi<Block>
 {
 }
 
 impl<Api> EthCompatRuntimeApiCollection for Api where
 	Api: sp_api::ApiExt<Block>
-		+ fp_rpc::ConvertTransactionRuntimeApi<Block>
-		+ fp_rpc::EthereumRuntimeRPCApi<Block>
+		+ tp_rpc::ConvertTransactionRuntimeApi<Block>
+		+ tp_rpc::EthereumRuntimeRPCApi<Block>
 {
 }
 
@@ -134,8 +134,8 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
 	fee_history_cache_limit: FeeHistoryCacheLimit,
 	sync: Arc<SyncingService<Block>>,
 	pubsub_notification_sinks: Arc<
-		fc_mapping_sync::EthereumBlockNotificationSinks<
-			fc_mapping_sync::EthereumBlockNotification<Block>,
+		tc_mapping_sync::EthereumBlockNotificationSinks<
+			tc_mapping_sync::EthereumBlockNotification<Block>,
 		>,
 	>,
 ) where
@@ -146,11 +146,11 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
 {
 	// Spawn main mapping sync worker background task.
 	match frontier_backend {
-		fc_db::Backend::KeyValue(b) => {
+		tc_db::Backend::KeyValue(b) => {
 			task_manager.spawn_essential_handle().spawn(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
-				fc_mapping_sync::kv::MappingSyncWorker::new(
+				tc_mapping_sync::kv::MappingSyncWorker::new(
 					client.import_notification_stream(),
 					Duration::new(6, 0),
 					client.clone(),
@@ -159,7 +159,7 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
 					Arc::new(b),
 					3,
 					0,
-					fc_mapping_sync::SyncStrategy::Normal,
+					tc_mapping_sync::SyncStrategy::Normal,
 					sync,
 					pubsub_notification_sinks,
 				)
@@ -167,20 +167,20 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
 			);
 		}
 		#[cfg(feature = "sql")]
-		fc_db::Backend::Sql(b) => {
+		tc_db::Backend::Sql(b) => {
 			task_manager.spawn_essential_handle().spawn_blocking(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
-				fc_mapping_sync::sql::SyncWorker::run(
+				tc_mapping_sync::sql::SyncWorker::run(
 					client.clone(),
 					backend,
 					Arc::new(b),
 					client.import_notification_stream(),
-					fc_mapping_sync::sql::SyncWorkerConfig {
+					tc_mapping_sync::sql::SyncWorkerConfig {
 						read_notification_timeout: Duration::from_secs(10),
 						check_indexed_blocks_interval: Duration::from_secs(60),
 					},
-					fc_mapping_sync::SyncStrategy::Parachain,
+					tc_mapping_sync::SyncStrategy::Parachain,
 					sync,
 					pubsub_notification_sinks,
 				),

@@ -19,11 +19,12 @@ use sp_consensus_aura::{sr25519::AuthorityId as AuraId, AuraApi};
 use sp_core::H256;
 use sp_inherents::CreateInherentDataProviders;
 use sp_runtime::traits::Block as BlockT;
+
 // Frontier
-pub use fc_rpc::{EthBlockDataCacheTask, EthConfig, OverrideHandle};
-pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
-pub use fc_storage::overrides_handle;
-use fp_rpc::{ConvertTransaction, ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
+pub use tc_rpc::{EthBlockDataCacheTask, EthConfig, OverrideHandle};
+pub use tc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
+pub use tc_storage::overrides_handle;
+use tp_rpc::{ConvertTransaction, ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
 
 /// Extra dependencies for Ethereum compatibility.
 pub struct EthDeps<B: BlockT, C, P, A: ChainApi, CT, CIDP> {
@@ -72,8 +73,8 @@ pub fn create_eth<B, C, BE, P, A, CT, CIDP, EC>(
 	deps: EthDeps<B, C, P, A, CT, CIDP>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	pubsub_notification_sinks: Arc<
-		fc_mapping_sync::EthereumBlockNotificationSinks<
-			fc_mapping_sync::EthereumBlockNotification<B>,
+		tc_mapping_sync::EthereumBlockNotificationSinks<
+			tc_mapping_sync::EthereumBlockNotification<B>,
 		>,
 	>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
@@ -93,13 +94,13 @@ where
 	CIDP: CreateInherentDataProviders<B, ()> + Send + 'static,
 	EC: EthConfig<B, C>,
 {
-	use fc_rpc::{
+	use tc_rpc::{
 		pending::AuraConsensusDataProvider, Eth, EthApiServer, EthDevSigner, EthFilter,
 		EthFilterApiServer, EthPubSub, EthPubSubApiServer, EthSigner, Net, NetApiServer, Web3,
 		Web3ApiServer,
 	};
 	#[cfg(feature = "txpool")]
-	use fc_rpc::{TxPool, TxPoolApiServer};
+	use tc_rpc::{TxPool, TxPoolApiServer};
 
 	let EthDeps {
 		client,

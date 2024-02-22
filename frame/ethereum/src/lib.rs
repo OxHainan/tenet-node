@@ -8,14 +8,14 @@
 // #[cfg(all(feature = "std", test))]
 // mod tests;
 
-pub use ethereum::{
-	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
-	TransactionAction, TransactionV2 as Transaction,
-};
 use ethereum_types::{Bloom, BloomInput, H160, H256, H64, U256};
 use evm::ExitReason;
 use scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
+pub use tp_ethereum::{
+	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, Receipt, TransactionAction,
+	TransactionV2 as Transaction,
+};
 // Substrate
 use frame_support::{
 	dispatch::{
@@ -41,9 +41,9 @@ use fp_ethereum::ValidatedTransaction as ValidatedTransactionT;
 use fp_evm::{
 	CallOrCreateInfo, CheckEvmTransaction, CheckEvmTransactionConfig, TransactionValidationError,
 };
-pub use fp_rpc::TransactionStatus;
 use fp_storage::{EthereumStorageSchema, PALLET_ETHEREUM_SCHEMA};
 use pallet_evm::{BlockHashMapping, FeeCalculator, GasWeightMapping, Runner};
+pub use tp_rpc::TransactionStatus;
 
 #[derive(Clone, Eq, PartialEq, RuntimeDebug)]
 #[derive(Encode, Decode, MaxEncodedLen, TypeInfo)]
@@ -302,7 +302,7 @@ pub mod pallet {
 
 	/// The current Ethereum block.
 	#[pallet::storage]
-	pub type CurrentBlock<T: Config> = StorageValue<_, ethereum::BlockV2>;
+	pub type CurrentBlock<T: Config> = StorageValue<_, tp_ethereum::BlockV2>;
 
 	/// The current Ethereum receipts.
 	#[pallet::storage]
@@ -358,7 +358,7 @@ impl<T: Config> Pallet<T> {
 				sig[32..64].copy_from_slice(&t.signature.s()[..]);
 				sig[64] = t.signature.standard_v();
 				msg.copy_from_slice(
-					&ethereum::LegacyTransactionMessage::from(t.clone()).hash()[..],
+					&tp_ethereum::LegacyTransactionMessage::from(t.clone()).hash()[..],
 				);
 			}
 			Transaction::EIP2930(t) => {
@@ -366,7 +366,7 @@ impl<T: Config> Pallet<T> {
 				sig[32..64].copy_from_slice(&t.s[..]);
 				sig[64] = t.odd_y_parity as u8;
 				msg.copy_from_slice(
-					&ethereum::EIP2930TransactionMessage::from(t.clone()).hash()[..],
+					&tp_ethereum::EIP2930TransactionMessage::from(t.clone()).hash()[..],
 				);
 			}
 			Transaction::EIP1559(t) => {
@@ -374,7 +374,7 @@ impl<T: Config> Pallet<T> {
 				sig[32..64].copy_from_slice(&t.s[..]);
 				sig[64] = t.odd_y_parity as u8;
 				msg.copy_from_slice(
-					&ethereum::EIP1559TransactionMessage::from(t.clone()).hash()[..],
+					&tp_ethereum::EIP1559TransactionMessage::from(t.clone()).hash()[..],
 				);
 			}
 		}
@@ -401,11 +401,11 @@ impl<T: Config> Pallet<T> {
 			Self::logs_bloom(logs, &mut logs_bloom);
 		}
 
-		let ommers = Vec::<ethereum::Header>::new();
-		let receipts_root = ethereum::util::ordered_trie_root(
-			receipts.iter().map(ethereum::EnvelopedEncodable::encode),
+		let ommers = Vec::<tp_ethereum::Header>::new();
+		let receipts_root = tp_ethereum::util::ordered_trie_root(
+			receipts.iter().map(tp_ethereum::EnvelopedEncodable::encode),
 		);
-		let partial_header = ethereum::PartialHeader {
+		let partial_header = tp_ethereum::PartialHeader {
 			parent_hash: if block_number > U256::zero() {
 				BlockHash::<T>::get(block_number - 1)
 			} else {
@@ -424,7 +424,7 @@ impl<T: Config> Pallet<T> {
 			mix_hash: H256::default(),
 			nonce: H64::default(),
 		};
-		let block = ethereum::Block::new(partial_header, transactions.clone(), ommers);
+		let block = tp_ethereum::Block::new(partial_header, transactions.clone(), ommers);
 
 		CurrentBlock::<T>::put(block.clone());
 		CurrentReceipts::<T>::put(receipts.clone());
@@ -557,10 +557,13 @@ impl<T: Config> Pallet<T> {
 					from: source,
 					to,
 					contract_address: None,
-					logs: info.logs.clone(),
+					logs: info.logs.clone().into_iter().map(Log::from).collect(),
 					logs_bloom: {
 						let mut bloom: Bloom = Bloom::default();
-						Self::logs_bloom(info.logs, &mut bloom);
+						Self::logs_bloom(
+							info.logs.into_iter().map(Log::from).collect(),
+							&mut bloom,
+						);
 						bloom
 					},
 				},
@@ -601,10 +604,13 @@ impl<T: Config> Pallet<T> {
 					from: source,
 					to,
 					contract_address: Some(info.value),
-					logs: info.logs.clone(),
+					logs: info.logs.clone().into_iter().map(Log::from).collect(),
 					logs_bloom: {
 						let mut bloom: Bloom = Bloom::default();
-						Self::logs_bloom(info.logs, &mut bloom);
+						Self::logs_bloom(
+							info.logs.into_iter().map(Log::from).collect(),
+							&mut bloom,
+						);
 						bloom
 					},
 				},
@@ -632,19 +638,19 @@ impl<T: Config> Pallet<T> {
 				used_gas.effective
 			};
 			match &transaction {
-				Transaction::Legacy(_) => Receipt::Legacy(ethereum::EIP658ReceiptData {
+				Transaction::Legacy(_) => Receipt::Legacy(tp_ethereum::EIP658ReceiptData {
 					status_code,
 					used_gas: cumulative_gas_used,
 					logs_bloom,
 					logs,
 				}),
-				Transaction::EIP2930(_) => Receipt::EIP2930(ethereum::EIP2930ReceiptData {
+				Transaction::EIP2930(_) => Receipt::EIP2930(tp_ethereum::EIP2930ReceiptData {
 					status_code,
 					used_gas: cumulative_gas_used,
 					logs_bloom,
 					logs,
 				}),
-				Transaction::EIP1559(_) => Receipt::EIP1559(ethereum::EIP2930ReceiptData {
+				Transaction::EIP1559(_) => Receipt::EIP1559(tp_ethereum::EIP2930ReceiptData {
 					status_code,
 					used_gas: cumulative_gas_used,
 					logs_bloom,
@@ -763,7 +769,7 @@ impl<T: Config> Pallet<T> {
 		};
 
 		match action {
-			ethereum::TransactionAction::Call(target) => {
+			tp_ethereum::TransactionAction::Call(target) => {
 				let res = match T::Runner::call(
 					from,
 					target,
@@ -794,7 +800,7 @@ impl<T: Config> Pallet<T> {
 
 				Ok((Some(target), None, CallOrCreateInfo::Call(res)))
 			}
-			ethereum::TransactionAction::Create => {
+			tp_ethereum::TransactionAction::Create => {
 				let res = match T::Runner::create(
 					from,
 					input,
@@ -865,15 +871,15 @@ impl<T: Config> Pallet<T> {
 		let db_weights = T::DbWeight::get();
 		let mut weight: Weight = db_weights.reads(1);
 		let item = b"CurrentBlock";
-		let block_v0 = frame_support::storage::migration::get_storage_value::<ethereum::BlockV0>(
+		let block_v0 = frame_support::storage::migration::get_storage_value::<tp_ethereum::BlockV0>(
 			Self::name().as_bytes(),
 			item,
 			&[],
 		);
 		if let Some(block_v0) = block_v0 {
 			weight = weight.saturating_add(db_weights.writes(1));
-			let block_v2: ethereum::BlockV2 = block_v0.into();
-			frame_support::storage::migration::put_storage_value::<ethereum::BlockV2>(
+			let block_v2: tp_ethereum::BlockV2 = block_v0.into();
+			frame_support::storage::migration::put_storage_value::<tp_ethereum::BlockV2>(
 				Self::name().as_bytes(),
 				item,
 				&[],
@@ -886,7 +892,7 @@ impl<T: Config> Pallet<T> {
 	#[cfg(feature = "try-runtime")]
 	pub fn pre_migrate_block_v2() -> Result<Vec<u8>, &'static str> {
 		let item = b"CurrentBlock";
-		let block_v0 = frame_support::storage::migration::get_storage_value::<ethereum::BlockV0>(
+		let block_v0 = frame_support::storage::migration::get_storage_value::<tp_ethereum::BlockV0>(
 			Self::name().as_bytes(),
 			item,
 			&[],
@@ -910,7 +916,7 @@ impl<T: Config> Pallet<T> {
 		)
 		.expect("the state parameter should be something that was generated by pre_upgrade");
 		let item = b"CurrentBlock";
-		let block_v2 = frame_support::storage::migration::get_storage_value::<ethereum::BlockV2>(
+		let block_v2 = frame_support::storage::migration::get_storage_value::<tp_ethereum::BlockV2>(
 			Self::name().as_bytes(),
 			item,
 			&[],

@@ -20,7 +20,7 @@ use futures::TryFutureExt;
 use sc_cli::{ChainSpec, SubstrateCli};
 use sc_service::DatabaseSource;
 // Frontier
-use fc_db::kv::frontier_database_dir;
+use tc_db::kv::frontier_database_dir;
 
 use crate::{
 	chain_spec,
@@ -180,9 +180,9 @@ pub fn run() -> sc_cli::Result<()> {
 				let (client, _, _, _, frontier_backend) =
 					service::new_chain_ops(&mut config, &cli.eth)?;
 				let frontier_backend = match frontier_backend {
-					fc_db::Backend::KeyValue(kv) => std::sync::Arc::new(kv),
+					tc_db::Backend::KeyValue(kv) => std::sync::Arc::new(kv),
 					#[cfg(feature = "sql")]
-					_ => panic!("Only fc_db::Backend::KeyValue supported"),
+					_ => panic!("Only tc_db::Backend::KeyValue supported"),
 				};
 				cmd.run(client, frontier_backend)
 			})

@@ -1,0 +1,35 @@
+[package]
+name = "tc-cli"
+version = "1.0.0-dev"
+license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
+description = "Frontier CLI interface"
+authors = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+clap = { workspace = true }
+ethereum-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# Substrate
+sc-cli = { workspace = true }
+sp-api = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-runtime = { workspace = true }
+# Frontier
+fp-storage = { workspace = true, features = ["default"] }
+
+# Tenet
+tc-db = { workspace = true }
+tp-rpc = { workspace = true, features = ["default"] }
+
+[features]
+default = ["rocksdb"]
+rocksdb = [
+	"sc-cli/rocksdb",
+	"tc-db/rocksdb",
+]

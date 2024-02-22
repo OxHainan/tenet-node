@@ -3,8 +3,16 @@ members = [
 	"bin/runtime",
 	"bin/node",
 	"client/executor",
+	"client/storage",
+	"client/rpc-core",
+	"client/rpc",
+	"client/cli",
+	"client/consensus",
+	"client/db",
+	"client/mapping-sync",
 	"frame/ethereum",
-	"utils/ethereum",
+	"primitives/ethereum",
+	"primitives/rpc",
 ]
 
 resolver = "2"
@@ -15,15 +23,9 @@ edition = "2021"
 repository = "https://github.com/Oxhainan/tenet/"
 
 [workspace.dependencies]
-scale-codec = { package = "parity-scale-codec", version = "3.6.9", default-features = false, features = [
-	"derive",
-] }
-scale-info = { version = "2.9.0", default-features = false, features = [
-	"derive",
-] }
-
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }
+bytes = { version = "1.5" }
 clap = { version = "4.4.3", features = ["derive", "deprecated"] }
 derive_more = "0.99"
 environmental = { version = "1.1.4", default-features = false }
@@ -43,7 +45,14 @@ log = { version = "0.4.20", default-features = false }
 num_enum = { version = "0.7.0", default-features = false }
 parity-db = "0.4.12"
 parking_lot = "0.12.1"
+rand = { version = "0.8" }
 rlp = { version = "0.5.2", default-features = false }
+scale-codec = { package = "parity-scale-codec", version = "3.6.9", default-features = false, features = [
+	"derive",
+] }
+scale-info = { version = "2.9.0", default-features = false, features = [
+	"derive",
+] }
 serde = { version = "1.0", default-features = false, features = [
 	"derive",
 	"alloc",
@@ -57,9 +66,11 @@ tokio = "1.32.0"
 sp-api = { version = "23.0.0", default-features = false }
 sp-block-builder = { version = "23.0.0", default-features = false }
 sp-blockchain = { version = "25.0.0" }
+sp-consensus = { version = "0.29" }
 sp-consensus-aura = { version = "0.29", default-features = false }
 sp-consensus-grandpa = { version = "10.0.0", default-features = false }
 sp-core = { version = "25.0.0", default-features = false }
+sp-database = { version = "9.0.0" }
 sp-externalities = { version = "0.23.0", default-features = false }
 sp-inherents = { version = "23.0.0", default-features = false }
 sp-io = { version = "27.0.0", default-features = false }
@@ -70,13 +81,13 @@ sp-runtime-interface = { version = "21.0.0", default-features = false }
 sp-session = { version = "24.0.0", default-features = false }
 sp-state-machine = { version = "0.32", default-features = false }
 sp-std = { version = "12.0.0", default-features = false }
+sp-storage = { version = "17.0.0", default-features = false }
 sp-timestamp = { version = "23.0.0", default-features = false }
 sp-tracing = { version = "14.0.0", default-features = false }
 sp-transaction-pool = { version = "23.0.0", default-features = false }
 sp-trie = { version = "26.0.0", default-features = false }
 sp-version = { version = "26.0.0", default-features = false }
 sp-wasm-interface = { version = "18.0.0", default-features = false }
-
 # Substrate Client
 sc-allocator = { version = "20.0.0", default-features = false }
 sc-basic-authorship = { version = "0.31.0" }
@@ -158,11 +169,18 @@ pallet-hotfix-sufficients = { version = "1.0.0", git = "https://github.com/OxHai
 
 # TENET NODE
 pallet-ethereum = { version = "4.0.0-dev", path = "frame/ethereum", default-features = false }
+tc-cli = { path = "client/cli" }
+tc-consensus = { path = "client/consensus" }
+tc-db = { path = "client/db" }
 tc-executor = { version = "0.29.0", path = "client/executor" }
+tc-mapping-sync = { path = "client/mapping-sync" }
+tc-rpc = { path = "client/rpc" }
+tc-rpc-core = { path = "client/rpc-core" }
+tc-storage = { path = "client/storage" }
 tenet-runtime = { version = "1.0.0-dev", path = "bin/runtime" }
+tp-ethereum = { path = "primitives/ethereum" }
+tp-rpc = { path = "primitives/rpc" }
 
-[patch.crates-io]
-ethereum = { version = "0.15", path = "utils/ethereum" }
 [profile.release]
 # Substrate runtime requires unwinding.
 panic = "unwind"
