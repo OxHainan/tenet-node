@@ -435,9 +435,14 @@ where
 	async fn transaction_receipt(
 		&self,
 		hash: H256,
-		from: Option<ethereum_types::Address>,
+		signature: Option<tp_signer::EthereumSignature>,
 	) -> RpcResult<Option<Receipt>> {
 		let (block_info, index) = self.block_info_by_eth_transaction_hash(hash).await?;
+
+		let from = match signature {
+			Some(sig) => sig.recover_signer(hash.as_ref()),
+			None => None,
+		};
 		self.transaction_receipt(&block_info, hash, index, from)
 			.await
 	}

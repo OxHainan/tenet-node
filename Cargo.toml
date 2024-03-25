@@ -13,6 +13,7 @@ members = [
 	"frame/ethereum",
 	"primitives/ethereum",
 	"primitives/rpc",
+	"primitives/account",
 ]
 
 resolver = "2"
@@ -180,6 +181,7 @@ tc-storage = { path = "client/storage" }
 tenet-runtime = { version = "1.0.0-dev", path = "bin/runtime" }
 tp-ethereum = { path = "primitives/ethereum" }
 tp-rpc = { path = "primitives/rpc" }
+tp-signer = { path = "primitives/account" }
 
 [profile.release]
 # Substrate runtime requires unwinding.
