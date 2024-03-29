@@ -5,3 +5,4 @@
 channel    = "nightly-2024-02-08" # rustc 1.74.0-nightly (8b4b20836 2024-02-08)
 components = ["cargo", "clippy", "rustc", "rustfmt", "rust-src"]
 profile    = "minimal"
+targets    = ["x86_64-unknown-linux-musl"]

@@ -9,6 +9,7 @@ members = [
 	"client/cli",
 	"client/consensus",
 	"client/db",
+	"client/rpc-server",
 	"client/mapping-sync",
 	"frame/ethereum",
 	"primitives/ethereum",
@@ -182,6 +183,10 @@ tenet-runtime = { version = "1.0.0-dev", path = "bin/runtime" }
 tp-ethereum = { path = "primitives/ethereum" }
 tp-rpc = { path = "primitives/rpc" }
 tp-signer = { path = "primitives/account" }
+
+[patch.crates-io]
+jsonrpsee = { git = "https://github.com/yingjun-wu/jsonrpsee.git", branch = "tls-0.16.3" }
+sc-rpc-server = { path = "client/rpc-server" }
 
 [profile.release]
 # Substrate runtime requires unwinding.
