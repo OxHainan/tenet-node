@@ -15,6 +15,8 @@ members = [
 	"primitives/ethereum",
 	"primitives/rpc",
 	"primitives/account",
+	"primitives/io",
+	"primitives/state-machine",
 ]
 
 resolver = "2"
@@ -81,7 +83,7 @@ sp-panic-handler = { version = "12.0.0", default-features = false }
 sp-runtime = { version = "28.0.0", default-features = false }
 sp-runtime-interface = { version = "21.0.0", default-features = false }
 sp-session = { version = "24.0.0", default-features = false }
-sp-state-machine = { version = "0.32", default-features = false }
+sp-state-machine = { version = "0.32", default-features = false, path = "primitives/state-machine" }
 sp-std = { version = "12.0.0", default-features = false }
 sp-storage = { version = "17.0.0", default-features = false }
 sp-timestamp = { version = "23.0.0", default-features = false }
@@ -187,6 +189,7 @@ tp-signer = { path = "primitives/account" }
 [patch.crates-io]
 jsonrpsee = { git = "https://github.com/yingjun-wu/jsonrpsee.git", branch = "tls-0.16.3" }
 sc-rpc-server = { path = "client/rpc-server" }
+sp-state-machine = { path = "primitives/state-machine" }
 
 [profile.release]
 # Substrate runtime requires unwinding.

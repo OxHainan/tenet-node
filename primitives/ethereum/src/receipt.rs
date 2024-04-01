@@ -273,3 +273,126 @@ fn parse_log(topics: &[H256]) -> Option<LogType> {
 		None
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use core::str::FromStr;
+
+	use ethereum_types::{Address, BloomInput};
+	use hash_db::Hasher;
+
+	use crate::trie;
+
+	use super::*;
+	fn logs_bloom(logs: Vec<Log>, bloom: &mut Bloom) {
+		for log in logs {
+			bloom.accrue(BloomInput::Raw(&log.address[..]));
+			for topic in log.topics {
+				bloom.accrue(BloomInput::Raw(&topic[..]));
+			}
+		}
+	}
+	#[test]
+	fn test_receipt_proof_should_be_work() {
+		let logs: Vec<ethereum::Log> = vec![
+			ethereum::Log {
+				address: Address::from_str("ae519fc2ba8e6ffe6473195c092bf1bae986ff90").unwrap(),
+				topics: vec![
+					H256::from_str(
+						"ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+					)
+					.unwrap(),
+					H256::from_str(
+						"00000000000000000000000019e7e376e7c213b7e7e7e46cc70a5dd086daff2a",
+					)
+					.unwrap(),
+					H256::from_str(
+						"00000000000000000000000019e7e376e7c213b7e7e7e46cc70a5dd086daff2a",
+					)
+					.unwrap(),
+				],
+				data: vec![
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 100,
+				],
+			},
+			ethereum::Log {
+				address: Address::from_str("ae519fc2ba8e6ffe6473195c092bf1bae986ff90").unwrap(),
+				topics: vec![
+					H256::from_str(
+						"8adddb28f076153c21223253f600be55280db15ff3426c601dc56c6cb39e6d00",
+					)
+					.unwrap(),
+					PERCEPTIBLE,
+					H256::from_str(
+						"00000000000000000000000019e7e376e7c213b7e7e7e46cc70a5dd086daff2a",
+					)
+					.unwrap(),
+					H256::from_str(
+						"00000000000000000000000019e7e376e7c213b7e7e7e46cc70a5dd086daff2a",
+					)
+					.unwrap(),
+				],
+				data: vec![
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 100,
+				],
+			},
+		];
+
+		let logs: Vec<Log> = logs.into_iter().map(Log::from).collect::<Vec<_>>();
+		let mut bloom = Bloom::default();
+		logs_bloom(logs.clone(), &mut bloom);
+		let receipt = Receipt::EIP1559(EIP658ReceiptData {
+			status_code: 1,
+			used_gas: 52790.into(),
+			logs_bloom: bloom,
+			logs,
+		});
+
+		let _encoded = receipt.encode();
+		// println!(
+		// 	"{:?}",
+		// 	sp_core::hexdisplay::HexDisplay::from(&encoded.to_vec())
+		// );
+
+		let receipt = match receipt {
+			Receipt::EIP1559(receipt) | Receipt::EIP2930(receipt) | Receipt::Legacy(receipt) => {
+				receipt
+			}
+		};
+
+		let logs_leaf = receipt
+			.logs
+			.iter()
+			.map(rlp::encode)
+			.map(|rlp| sp_core::KeccakHasher::hash(&rlp))
+			.collect::<Vec<_>>();
+		println!("{:?}", logs_leaf);
+
+		println!(
+			"{:?}",
+			sp_core::hexdisplay::HexDisplay::from(&rlp::encode(&receipt.logs[1]).to_vec())
+		);
+
+		let (root, proof) = trie::order_generate_proof::<sp_core::KeccakHasher, _, _>(
+			receipt.logs.iter().map(rlp::encode),
+			1,
+		)
+		.unwrap();
+
+		let s = trie::order_verify_proof::<sp_core::KeccakHasher>(proof, root, 1)
+			.unwrap()
+			.unwrap();
+		println!("{:?}", sp_core::hexdisplay::HexDisplay::from(&s));
+
+		let (empty_log, non_empty): (Vec<_>, Vec<_>) = receipt
+			.logs
+			.iter()
+			.enumerate()
+			.partition(|(_, log)| log.log_type.is_none());
+
+		println!("empty_log {:?}", empty_log);
+		println!("non_empty {:?}", non_empty);
+	}
+}
