@@ -63,6 +63,7 @@ tp-signer = { workspace = true, features = ["std"] }
 tc-mapping-sync = { workspace = true }
 tc-rpc-core = { workspace = true }
 tc-storage = { workspace = true }
+tp-io = { workspace = true, features = ["default"] }
 tp-rpc = { workspace = true, features = ["default"] }
 
 [features]

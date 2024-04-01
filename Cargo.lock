@@ -8823,6 +8823,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tp-ethereum",
+ "tp-io",
  "tp-rpc",
  "tp-signer",
 ]

@@ -183,6 +183,7 @@ tc-rpc-core = { path = "client/rpc-core" }
 tc-storage = { path = "client/storage" }
 tenet-runtime = { version = "1.0.0-dev", path = "bin/runtime" }
 tp-ethereum = { path = "primitives/ethereum" }
+tp-io = { path = "primitives/io" }
 tp-rpc = { path = "primitives/rpc" }
 tp-signer = { path = "primitives/account" }
 

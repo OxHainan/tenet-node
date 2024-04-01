@@ -34,6 +34,8 @@ sp_api::decl_runtime_apis! {
 		fn gas_price() -> U256;
 		/// For a given account address, returns pallet_evm::AccountCodes.
 		fn account_code_at(address: H160) -> Vec<u8>;
+		fn has_account_public_key(address: H160) -> bool;
+		fn account_public(address: H160) -> Vec<u8>;
 		/// Returns the converted FindAuthor::find_author authority id.
 		fn author() -> H160;
 

@@ -285,6 +285,11 @@ pub mod pallet {
 			exit_reason: ExitReason,
 			extra_data: Vec<u8>,
 		},
+
+		RegisterPublic {
+			from: H160,
+			public_key: Vec<u8>,
+		},
 	}
 
 	#[pallet::error]
@@ -315,6 +320,10 @@ pub mod pallet {
 	// Mapping for block number and hashes.
 	#[pallet::storage]
 	pub type BlockHash<T: Config> = StorageMap<_, Twox64Concat, U256, H256, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn account_public)]
+	pub type AccountPublic<T: Config> = StorageMap<_, Blake2_128Concat, H160, Vec<u8>, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(frame_support::DefaultNoBound)]
@@ -350,6 +359,11 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn recover_signer(transaction: &Transaction) -> Option<H160> {
+		let pubkey = Self::recover_public(transaction)?;
+		Some(H160::from(H256::from(sp_io::hashing::keccak_256(&pubkey))))
+	}
+
+	fn recover_public(transaction: &Transaction) -> Option<[u8; 64]> {
 		let mut sig = [0u8; 65];
 		let mut msg = [0u8; 32];
 		match transaction {
@@ -379,7 +393,17 @@ impl<T: Config> Pallet<T> {
 			}
 		}
 		let pubkey = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &msg).ok()?;
-		Some(H160::from(H256::from(sp_io::hashing::keccak_256(&pubkey))))
+		Some(pubkey)
+	}
+
+	fn register_public(origin: H160, transaction: &Transaction) {
+		let pubkey = Self::recover_public(transaction).unwrap();
+		AccountPublic::<T>::insert(origin, pubkey.to_vec());
+
+		Self::deposit_event(Event::RegisterPublic {
+			from: origin,
+			public_key: pubkey.to_vec(),
+		})
 	}
 
 	fn store_block(post_log: Option<PostLogContent>, block_number: U256) {
@@ -770,6 +794,10 @@ impl<T: Config> Pallet<T> {
 
 		match action {
 			tp_ethereum::TransactionAction::Call(target) => {
+				if target == H160::from_low_u64_be(1026) {
+					Self::register_public(from, transaction);
+				}
+
 				let res = match T::Runner::call(
 					from,
 					target,

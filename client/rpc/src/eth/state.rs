@@ -50,16 +50,42 @@ where
 		address: H160,
 		number_or_hash: Option<BlockNumberOrHash>,
 	) -> RpcResult<U256> {
+		let return_func = |balance: U256, nonce: &U256, pubkey: &Vec<u8>| -> RpcResult<U256> {
+			let balance = balance.as_u128();
+			let nonce: u64 = nonce.as_u64();
+			let mut bytes = [0u8; 64];
+			bytes.copy_from_slice(&pubkey);
+			let res = tp_io::crypto::encrypted(
+				&balance.to_be_bytes(),
+				&sp_io::hashing::keccak_256(&nonce.to_be_bytes()),
+				&bytes,
+			)
+			.map_err(|_| internal_err("Can't encrypted"))?;
+
+			Ok(U256::from_big_endian(res.as_ref()))
+		};
+
 		let number_or_hash = number_or_hash.unwrap_or(BlockNumberOrHash::Latest);
 		if number_or_hash == BlockNumberOrHash::Pending {
 			let (hash, api) = self
 				.pending_runtime_api()
 				.await
 				.map_err(|err| internal_err(format!("Create pending runtime api error: {err}")))?;
-			Ok(api
+
+			let acc = api
 				.account_basic(hash, address)
-				.map_err(|err| internal_err(format!("Fetch account balances failed: {err}")))?
-				.balance)
+				.map_err(|err| internal_err(format!("Fetch account balances failed: {err}")))?;
+			let pubkey = self
+				.client
+				.runtime_api()
+				.account_public(self.client.info().best_hash, address)
+				.unwrap_or_default();
+
+			if pubkey.is_empty() {
+				Ok(acc.balance)
+			} else {
+				return_func(acc.balance, &acc.nonce, &pubkey)
+			}
 		} else if let Ok(Some(id)) = frontier_backend_client::native_block_id::<B, C>(
 			self.client.as_ref(),
 			self.backend.as_ref(),
@@ -72,12 +98,21 @@ where
 				.expect_block_hash_from_id(&id)
 				.map_err(|_| internal_err(format!("Expect block number from id: {id}")))?;
 
-			Ok(self
+			let acc = self
 				.client
 				.runtime_api()
 				.account_basic(substrate_hash, address)
-				.map_err(|err| internal_err(format!("Fetch account balances failed: {:?}", err)))?
-				.balance)
+				.map_err(|err| internal_err(format!("Fetch account balances failed: {:?}", err)))?;
+			let pubkey = self
+				.client
+				.runtime_api()
+				.account_public(substrate_hash, address)
+				.unwrap_or_default();
+			if pubkey.is_empty() {
+				Ok(acc.balance)
+			} else {
+				return_func(acc.balance, &acc.nonce, &pubkey)
+			}
 		} else {
 			Ok(U256::zero())
 		}
