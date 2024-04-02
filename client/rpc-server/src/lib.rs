@@ -31,6 +31,10 @@ use jsonrpsee::{
 	},
 	RpcModule,
 };
+use rustls::{
+	pki_types::{CertificateDer, PrivateKeyDer},
+	ServerConfig,
+};
 use std::{error::Error as StdError, net::SocketAddr};
 use tower_http::cors::{AllowOrigin, CorsLayer};
 
@@ -100,7 +104,12 @@ pub async fn start_server<M: Send + Sync + 'static>(
 	let mut builder = ServerBuilder::new()
 		.max_request_body_size(max_payload_in_mb.saturating_mul(MEGABYTE))
 		.max_response_body_size(max_payload_out_mb.saturating_mul(MEGABYTE))
-		.set_tls(certs, key)
+		.set_tls(
+			ServerConfig::builder()
+				.with_no_client_auth()
+				.with_single_cert(certs, key)
+				.map_err(|e| error(e.to_string()))?,
+		)
 		.max_connections(max_connections)
 		.max_subscriptions_per_connection(max_subs_per_conn)
 		.ping_interval(std::time::Duration::from_secs(30))
@@ -189,16 +198,14 @@ fn format_cors(maybe_cors: Option<&Vec<String>>) -> String {
 }
 
 // Load public certificate from file.
-fn load_certs(filename: &str) -> std::io::Result<Vec<rustls::Certificate>> {
+fn load_certs(filename: &str) -> std::io::Result<Vec<CertificateDer<'static>>> {
 	// Open certificate file.
 	let certfile = std::fs::File::open(filename)
 		.map_err(|e| error(format!("failed to open {}: {}", filename, e)))?;
 	let mut reader = std::io::BufReader::new(certfile);
 
 	// Load and return certificate.
-	let certs = rustls_pemfile::certs(&mut reader)
-		.map_err(|_| error("failed to load certificate".into()))?;
-	Ok(certs.into_iter().map(rustls::Certificate).collect())
+	rustls_pemfile::certs(&mut reader).collect()
 }
 
 fn error(err: String) -> std::io::Error {
@@ -206,18 +213,12 @@ fn error(err: String) -> std::io::Error {
 }
 
 // Load private key from file.
-fn load_private_key(filename: &str) -> std::io::Result<rustls::PrivateKey> {
+fn load_private_key(filename: &str) -> std::io::Result<PrivateKeyDer<'static>> {
 	// Open keyfile.
 	let keyfile = std::fs::File::open(filename)
 		.map_err(|e| error(format!("failed to open {}: {}", filename, e)))?;
 	let mut reader = std::io::BufReader::new(keyfile);
 
 	// Load and return a single private key.
-	let keys = rustls_pemfile::pkcs8_private_keys(&mut reader)
-		.map_err(|_| error("failed to load private key".into()))?;
-	if keys.len() != 1 {
-		return Err(error("expected a single private key".into()));
-	}
-
-	Ok(rustls::PrivateKey(keys[0].clone()))
+	rustls_pemfile::private_key(&mut reader).map(|key| key.unwrap())
 }
