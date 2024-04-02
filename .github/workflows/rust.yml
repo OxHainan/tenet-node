@@ -15,35 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Rust Setup
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly-2023-05-23
-        target: wasm32-unknown-unknown
-        override: true
     - name: Install protoc
       uses: arduino/setup-protoc@v2
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Run tests
-      run: cargo test --release --locked --verbose --all
+      run: cargo test --release --locked --all
     - name: Build node
-      run: cargo build --release --locked --verbose
+      run: cargo build --release --locked
 
   lint:
     name: 'Run lints'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Rust Setup
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: nightly-2023-05-23
-        target: wasm32-unknown-unknown
-        override: true
-        components: rustfmt, clippy
+
     - name: Install protoc
       uses: arduino/setup-protoc@v2
       with:
@@ -53,7 +39,7 @@ jobs:
         if taplo --version &> /dev/null; then
           echo "taplo-cli is already installed"
         else
-          cargo install taplo-cli --locked
+          cargo install taplo-cli
         fi
         taplo fmt --check
     - name: Rustfmt
