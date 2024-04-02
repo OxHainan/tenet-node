@@ -83,7 +83,9 @@ pub struct OverlayedEntry<V> {
 
 impl<V> Default for OverlayedEntry<V> {
 	fn default() -> Self {
-		Self { transactions: SmallVec::new() }
+		Self {
+			transactions: SmallVec::new(),
+		}
 	}
 }
 
@@ -155,12 +157,19 @@ impl Default for ExecutionMode {
 impl<V> OverlayedEntry<V> {
 	/// The value as seen by the current transaction.
 	pub fn value_ref(&self) -> &V {
-		&self.transactions.last().expect(PROOF_OVERLAY_NON_EMPTY).value
+		&self
+			.transactions
+			.last()
+			.expect(PROOF_OVERLAY_NON_EMPTY)
+			.value
 	}
 
 	/// The value as seen by the current transaction.
 	pub fn into_value(mut self) -> V {
-		self.transactions.pop().expect(PROOF_OVERLAY_NON_EMPTY).value
+		self.transactions
+			.pop()
+			.expect(PROOF_OVERLAY_NON_EMPTY)
+			.value
 	}
 
 	/// Unique list of extrinsic indices which modified the value.
@@ -174,7 +183,11 @@ impl<V> OverlayedEntry<V> {
 
 	/// Mutable reference to the most recent version.
 	fn value_mut(&mut self) -> &mut V {
-		&mut self.transactions.last_mut().expect(PROOF_OVERLAY_NON_EMPTY).value
+		&mut self
+			.transactions
+			.last_mut()
+			.expect(PROOF_OVERLAY_NON_EMPTY)
+			.value
 	}
 
 	/// Remove the last version and return it.
@@ -184,7 +197,11 @@ impl<V> OverlayedEntry<V> {
 
 	/// Mutable reference to the set which holds the indices for the **current transaction only**.
 	fn transaction_extrinsics_mut(&mut self) -> &mut Extrinsics {
-		&mut self.transactions.last_mut().expect(PROOF_OVERLAY_NON_EMPTY).extrinsics
+		&mut self
+			.transactions
+			.last_mut()
+			.expect(PROOF_OVERLAY_NON_EMPTY)
+			.extrinsics
 	}
 
 	/// Writes a new version of a value.
@@ -193,7 +210,10 @@ impl<V> OverlayedEntry<V> {
 	/// rolled back when required.
 	fn set(&mut self, value: V, first_write_in_tx: bool, at_extrinsic: Option<u32>) {
 		if first_write_in_tx || self.transactions.is_empty() {
-			self.transactions.push(InnerValue { value, extrinsics: Default::default() });
+			self.transactions.push(InnerValue {
+				value,
+				extrinsics: Default::default(),
+			});
 		} else {
 			*self.value_mut() = value;
 		}
@@ -272,8 +292,13 @@ impl<K: Ord + Hash + Clone, V> OverlayedMap<K, V> {
 	/// Panics:
 	/// Panics if there are open transactions: `transaction_depth() > 0`
 	pub fn drain_commited(self) -> impl Iterator<Item = (K, V)> {
-		assert!(self.transaction_depth() == 0, "Drain is not allowed with open transactions.");
-		self.changes.into_iter().map(|(k, mut v)| (k, v.pop_transaction().value))
+		assert!(
+			self.transaction_depth() == 0,
+			"Drain is not allowed with open transactions."
+		);
+		self.changes
+			.into_iter()
+			.map(|(k, mut v)| (k, v.pop_transaction().value))
 	}
 
 	/// Returns the current nesting depth of the transaction stack.
@@ -289,7 +314,7 @@ impl<K: Ord + Hash + Clone, V> OverlayedMap<K, V> {
 	/// Calling this while already inside the runtime will return an error.
 	pub fn enter_runtime(&mut self) -> Result<(), AlreadyInRuntime> {
 		if let ExecutionMode::Runtime = self.execution_mode {
-			return Err(AlreadyInRuntime)
+			return Err(AlreadyInRuntime);
 		}
 		self.execution_mode = ExecutionMode::Runtime;
 		self.num_client_transactions = self.transaction_depth();
@@ -302,7 +327,7 @@ impl<K: Ord + Hash + Clone, V> OverlayedMap<K, V> {
 	/// Calling this while already outside the runtime will return an error.
 	pub fn exit_runtime(&mut self) -> Result<(), NotInRuntime> {
 		if let ExecutionMode::Client = self.execution_mode {
-			return Err(NotInRuntime)
+			return Err(NotInRuntime);
 		}
 		self.execution_mode = ExecutionMode::Client;
 		if self.has_open_runtime_transactions() {
@@ -349,7 +374,7 @@ impl<K: Ord + Hash + Clone, V> OverlayedMap<K, V> {
 		// runtime is not allowed to close transactions started by the client
 		if let ExecutionMode::Runtime = self.execution_mode {
 			if !self.has_open_runtime_transactions() {
-				return Err(NoOpenTransaction)
+				return Err(NoOpenTransaction);
 			}
 		}
 
@@ -386,7 +411,9 @@ impl<K: Ord + Hash + Clone, V> OverlayedMap<K, V> {
 				if has_predecessor {
 					let dropped_tx = overlayed.pop_transaction();
 					*overlayed.value_mut() = dropped_tx.value;
-					overlayed.transaction_extrinsics_mut().extend(dropped_tx.extrinsics);
+					overlayed
+						.transaction_extrinsics_mut()
+						.extend(dropped_tx.extrinsics);
 				}
 			}
 		}
@@ -441,7 +468,11 @@ impl OverlayedChangeSet {
 			if val.value_ref().is_some() {
 				count += 1;
 			}
-			val.set(None, insert_dirty(&mut self.dirty_keys, key.clone()), at_extrinsic);
+			val.set(
+				None,
+				insert_dirty(&mut self.dirty_keys, key.clone()),
+				at_extrinsic,
+			);
 		}
 		count
 	}
@@ -450,7 +481,9 @@ impl OverlayedChangeSet {
 	pub fn changes_after(&self, key: &[u8]) -> impl Iterator<Item = (&[u8], &OverlayedValue)> {
 		use sp_std::ops::Bound;
 		let range = (Bound::Excluded(key), Bound::Unbounded);
-		self.changes.range::<[u8], _>(range).map(|(k, v)| (k.as_slice(), v))
+		self.changes
+			.range::<[u8], _>(range)
+			.map(|(k, v)| (k.as_slice(), v))
 	}
 }
 
@@ -466,7 +499,13 @@ mod test {
 		let is: Changes = is
 			.changes()
 			.map(|(k, v)| {
-				(k.as_ref(), (v.value().map(AsRef::as_ref), v.extrinsics().into_iter().collect()))
+				(
+					k.as_ref(),
+					(
+						v.value().map(AsRef::as_ref),
+						v.extrinsics().into_iter().collect(),
+					),
+				)
 			})
 			.collect();
 		assert_eq!(&is, expected);
@@ -499,7 +538,10 @@ mod test {
 		changeset.set(b"key1".to_vec(), Some(b"val1".to_vec()), Some(2));
 		changeset.set(b"key0".to_vec(), Some(b"val0-1".to_vec()), Some(9));
 
-		assert_drained(changeset, vec![(b"key0", Some(b"val0-1")), (b"key1", Some(b"val1"))]);
+		assert_drained(
+			changeset,
+			vec![(b"key0", Some(b"val0-1")), (b"key1", Some(b"val1"))],
+		);
 	}
 
 	#[test]
@@ -621,8 +663,10 @@ mod test {
 		changeset.rollback_transaction().unwrap();
 		assert_eq!(changeset.transaction_depth(), 0);
 
-		let rolled_back: Changes =
-			vec![(b"key0", (Some(b"val0-1"), vec![1, 10])), (b"key1", (Some(b"val1"), vec![1]))];
+		let rolled_back: Changes = vec![
+			(b"key0", (Some(b"val0-1"), vec![1, 10])),
+			(b"key1", (Some(b"val1"), vec![1])),
+		];
 		assert_changes(&changeset, &rolled_back);
 
 		assert_drained_changes(changeset, rolled_back);

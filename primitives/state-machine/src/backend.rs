@@ -294,7 +294,10 @@ pub trait Backend<H: Hasher>: sp_std::fmt::Debug {
 		&self,
 		delta: impl Iterator<Item = (&'a [u8], Option<&'a [u8]>)>,
 		child_deltas: impl Iterator<
-			Item = (&'a ChildInfo, impl Iterator<Item = (&'a [u8], Option<&'a [u8]>)>),
+			Item = (
+				&'a ChildInfo,
+				impl Iterator<Item = (&'a [u8], Option<&'a [u8]>)>,
+			),
 		>,
 		state_version: StateVersion,
 	) -> (H::Out, BackendTransaction<H>)
@@ -316,9 +319,11 @@ pub trait Backend<H: Hasher>: sp_std::fmt::Debug {
 			}
 		}
 		let (root, parent_txs) = self.storage_root(
-			delta
-				.map(|(k, v)| (k, v.as_ref().map(|v| &v[..])))
-				.chain(child_roots.iter().map(|(k, v)| (&k[..], v.as_ref().map(|v| &v[..])))),
+			delta.map(|(k, v)| (k, v.as_ref().map(|v| &v[..]))).chain(
+				child_roots
+					.iter()
+					.map(|(k, v)| (&k[..], v.as_ref().map(|v| &v[..]))),
+			),
 			state_version,
 		);
 		txs.consolidate(parent_txs);
@@ -419,7 +424,10 @@ where
 {
 	/// Create a new instance.
 	pub fn new(backend: &'a B) -> Self {
-		Self { backend, _marker: PhantomData }
+		Self {
+			backend,
+			_marker: PhantomData,
+		}
 	}
 
 	/// Return the [`RuntimeCode`] build from the wrapped `backend`.
@@ -438,6 +446,10 @@ where
 			.flatten()
 			.and_then(|d| codec::Decode::decode(&mut &d[..]).ok());
 
-		Ok(RuntimeCode { code_fetcher: self, hash, heap_pages })
+		Ok(RuntimeCode {
+			code_fetcher: self,
+			hash,
+			heap_pages,
+		})
 	}
 }

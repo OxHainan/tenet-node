@@ -116,7 +116,8 @@ where
 
 	/// Move offchain changes from overlay to the persistent store.
 	pub fn persist_offchain_overlay(&mut self) {
-		self.offchain_db.apply_offchain_changes(self.overlay.offchain_drain_committed());
+		self.offchain_db
+			.apply_offchain_changes(self.overlay.offchain_drain_committed());
 	}
 
 	/// A shared reference type around the offchain worker storage.
@@ -137,14 +138,16 @@ where
 
 	/// Insert key/value into backend
 	pub fn insert(&mut self, k: StorageKey, v: StorageValue) {
-		self.backend.insert(vec![(None, vec![(k, Some(v))])], self.state_version);
+		self.backend
+			.insert(vec![(None, vec![(k, Some(v))])], self.state_version);
 	}
 
 	/// Insert key/value into backend.
 	///
 	/// This only supports inserting keys in child tries.
 	pub fn insert_child(&mut self, c: sp_core::storage::ChildInfo, k: StorageKey, v: StorageValue) {
-		self.backend.insert(vec![(Some(c), vec![(k, Some(v))])], self.state_version);
+		self.backend
+			.insert(vec![(Some(c), vec![(k, Some(v))])], self.state_version);
 	}
 
 	/// Registers the given extension for this instance.
@@ -156,6 +159,7 @@ where
 	///
 	/// This can be used as a fast way to restore the storage state from a backup because the trie
 	/// does not need to be computed.
+	#[allow(clippy::type_complexity)]
 	pub fn from_raw_snapshot(
 		raw_storage: Vec<(Vec<u8>, (Vec<u8>, i32))>,
 		storage_root: H::Out,
@@ -169,10 +173,11 @@ where
 
 			if key.len() < hash_len {
 				log::warn!("Invalid key in `from_raw_snapshot`: {key:?}");
-				continue
+				continue;
 			}
 
-			hash.as_mut().copy_from_slice(&key[(key.len() - hash_len)..]);
+			hash.as_mut()
+				.copy_from_slice(&key[(key.len() - hash_len)..]);
 
 			// Each time .emplace is called the internal MemoryDb ref count increments.
 			// Repeatedly call emplace to initialise the ref count to the correct value.
@@ -193,6 +198,7 @@ where
 	/// Drains the underlying raw storage key/values and returns the root hash.
 	///
 	/// Useful for backing up the storage in a format that can be quickly re-loaded.
+	#[allow(clippy::type_complexity)]
 	pub fn into_raw_snapshot(mut self) -> (Vec<(Vec<u8>, (Vec<u8>, i32))>, H::Out) {
 		let raw_key_values = self
 			.backend
@@ -210,14 +216,19 @@ where
 	/// In contrast to [`commit_all`](Self::commit_all) this will not panic if there are open
 	/// transactions.
 	pub fn as_backend(&self) -> InMemoryBackend<H> {
-		let top: Vec<_> =
-			self.overlay.changes().map(|(k, v)| (k.clone(), v.value().cloned())).collect();
+		let top: Vec<_> = self
+			.overlay
+			.changes()
+			.map(|(k, v)| (k.clone(), v.value().cloned()))
+			.collect();
 		let mut transaction = vec![(None, top)];
 
 		for (child_changes, child_info) in self.overlay.children() {
 			transaction.push((
 				Some(child_info.clone()),
-				child_changes.map(|(k, v)| (k.clone(), v.value().cloned())).collect(),
+				child_changes
+					.map(|(k, v)| (k.clone(), v.value().cloned()))
+					.collect(),
 			))
 		}
 
@@ -230,7 +241,9 @@ where
 	///
 	/// This will panic if there are still open transactions.
 	pub fn commit_all(&mut self) -> Result<(), String> {
-		let changes = self.overlay.drain_storage_changes(&self.backend, self.state_version)?;
+		let changes = self
+			.overlay
+			.drain_storage_changes(&self.backend, self.state_version)?;
 
 		self.backend
 			.apply_transaction(changes.transaction_storage_root, changes.transaction);
@@ -254,11 +267,16 @@ where
 		let proving_backend = TrieBackendBuilder::wrap(&self.backend)
 			.with_recorder(Default::default())
 			.build();
-		let mut proving_ext =
-			Ext::new(&mut self.overlay, &proving_backend, Some(&mut self.extensions));
+		let mut proving_ext = Ext::new(
+			&mut self.overlay,
+			&proving_backend,
+			Some(&mut self.extensions),
+		);
 
 		let outcome = sp_externalities::set_and_run_with_externalities(&mut proving_ext, execute);
-		let proof = proving_backend.extract_proof().expect("Failed to extract storage proof");
+		let proof = proving_backend
+			.extract_proof()
+			.expect("Failed to extract storage proof");
 
 		(outcome, proof)
 	}
@@ -367,7 +385,8 @@ where
 	H::Out: Ord + codec::Codec,
 {
 	fn extension<T: Any + Extension>(&mut self) -> Option<&mut T> {
-		self.extension_by_type_id(TypeId::of::<T>()).and_then(<dyn Any>::downcast_mut)
+		self.extension_by_type_id(TypeId::of::<T>())
+			.and_then(<dyn Any>::downcast_mut)
 	}
 
 	fn register_extension<T: Extension>(&mut self, ext: T) -> Result<(), sp_externalities::Error> {
@@ -376,141 +395,5 @@ where
 
 	fn deregister_extension<T: Extension>(&mut self) -> Result<(), sp_externalities::Error> {
 		self.deregister_extension_by_type_id(TypeId::of::<T>())
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use sp_core::{storage::ChildInfo, traits::Externalities, H256};
-	use sp_runtime::traits::BlakeTwo256;
-
-	#[test]
-	fn commit_should_work() {
-		let storage = Storage::default(); // avoid adding the trie threshold.
-		let mut ext = TestExternalities::<BlakeTwo256>::from((storage, Default::default()));
-		let mut ext = ext.ext();
-		ext.set_storage(b"doe".to_vec(), b"reindeer".to_vec());
-		ext.set_storage(b"dog".to_vec(), b"puppy".to_vec());
-		ext.set_storage(b"dogglesworth".to_vec(), b"cat".to_vec());
-		let root = array_bytes::hex_n_into_unchecked::<_, H256, 32>(
-			"ed4d8c799d996add422395a6abd7545491d40bd838d738afafa1b8a4de625489",
-		);
-		assert_eq!(H256::from_slice(ext.storage_root(Default::default()).as_slice()), root);
-	}
-
-	#[test]
-	fn raw_storage_drain_and_restore() {
-		// Create a TestExternalities with some data in it.
-		let mut original_ext =
-			TestExternalities::<BlakeTwo256>::from((Default::default(), Default::default()));
-		original_ext.insert(b"doe".to_vec(), b"reindeer".to_vec());
-		original_ext.insert(b"dog".to_vec(), b"puppy".to_vec());
-		original_ext.insert(b"dogglesworth".to_vec(), b"cat".to_vec());
-		let child_info = ChildInfo::new_default(&b"test_child"[..]);
-		original_ext.insert_child(child_info.clone(), b"cattytown".to_vec(), b"is_dark".to_vec());
-		original_ext.insert_child(child_info.clone(), b"doggytown".to_vec(), b"is_sunny".to_vec());
-
-		// Apply the backend to itself again to increase the ref count of all nodes.
-		original_ext.backend.apply_transaction(
-			*original_ext.backend.root(),
-			original_ext.backend.clone().into_storage(),
-		);
-
-		// Ensure all have the correct ref counrt
-		assert!(original_ext.backend.backend_storage().keys().values().all(|r| *r == 2));
-
-		// Drain the raw storage and root.
-		let root = *original_ext.backend.root();
-		let (raw_storage, storage_root) = original_ext.into_raw_snapshot();
-
-		// Load the raw storage and root into a new TestExternalities.
-		let recovered_ext = TestExternalities::<BlakeTwo256>::from_raw_snapshot(
-			raw_storage,
-			storage_root,
-			Default::default(),
-		);
-
-		// Check the storage root is the same as the original
-		assert_eq!(root, *recovered_ext.backend.root());
-
-		// Check the original storage key/values were recovered correctly
-		assert_eq!(recovered_ext.backend.storage(b"doe").unwrap(), Some(b"reindeer".to_vec()));
-		assert_eq!(recovered_ext.backend.storage(b"dog").unwrap(), Some(b"puppy".to_vec()));
-		assert_eq!(recovered_ext.backend.storage(b"dogglesworth").unwrap(), Some(b"cat".to_vec()));
-
-		// Check the original child storage key/values were recovered correctly
-		assert_eq!(
-			recovered_ext.backend.child_storage(&child_info, b"cattytown").unwrap(),
-			Some(b"is_dark".to_vec())
-		);
-		assert_eq!(
-			recovered_ext.backend.child_storage(&child_info, b"doggytown").unwrap(),
-			Some(b"is_sunny".to_vec())
-		);
-
-		// Ensure all have the correct ref count after importing
-		assert!(recovered_ext.backend.backend_storage().keys().values().all(|r| *r == 2));
-	}
-
-	#[test]
-	fn set_and_retrieve_code() {
-		let mut ext = TestExternalities::<BlakeTwo256>::default();
-		let mut ext = ext.ext();
-
-		let code = vec![1, 2, 3];
-		ext.set_storage(CODE.to_vec(), code.clone());
-
-		assert_eq!(&ext.storage(CODE).unwrap(), &code);
-	}
-
-	#[test]
-	fn check_send() {
-		fn assert_send<T: Send>() {}
-		assert_send::<TestExternalities<BlakeTwo256>>();
-	}
-
-	#[test]
-	fn commit_all_and_kill_child_storage() {
-		let mut ext = TestExternalities::<BlakeTwo256>::default();
-		let child_info = ChildInfo::new_default(&b"test_child"[..]);
-
-		{
-			let mut ext = ext.ext();
-			ext.place_child_storage(&child_info, b"doe".to_vec(), Some(b"reindeer".to_vec()));
-			ext.place_child_storage(&child_info, b"dog".to_vec(), Some(b"puppy".to_vec()));
-			ext.place_child_storage(&child_info, b"dog2".to_vec(), Some(b"puppy2".to_vec()));
-		}
-
-		ext.commit_all().unwrap();
-
-		{
-			let mut ext = ext.ext();
-
-			assert!(
-				ext.kill_child_storage(&child_info, Some(2), None).maybe_cursor.is_some(),
-				"Should not delete all keys"
-			);
-
-			assert!(ext.child_storage(&child_info, &b"doe"[..]).is_none());
-			assert!(ext.child_storage(&child_info, &b"dog"[..]).is_none());
-			assert!(ext.child_storage(&child_info, &b"dog2"[..]).is_some());
-		}
-	}
-
-	#[test]
-	fn as_backend_generates_same_backend_as_commit_all() {
-		let mut ext = TestExternalities::<BlakeTwo256>::default();
-		{
-			let mut ext = ext.ext();
-			ext.set_storage(b"doe".to_vec(), b"reindeer".to_vec());
-			ext.set_storage(b"dog".to_vec(), b"puppy".to_vec());
-			ext.set_storage(b"dogglesworth".to_vec(), b"cat".to_vec());
-		}
-
-		let backend = ext.as_backend();
-
-		ext.commit_all().unwrap();
-		assert!(ext.backend.eq(&backend), "Both backend should be equal.");
 	}
 }

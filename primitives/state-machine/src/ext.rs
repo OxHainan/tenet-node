@@ -115,7 +115,11 @@ where
 	/// Create a new `Ext`.
 	#[cfg(not(feature = "std"))]
 	pub fn new(overlay: &'a mut OverlayedChanges<H>, backend: &'a B) -> Self {
-		Ext { overlay, backend, id: 0 }
+		Ext {
+			overlay,
+			backend,
+			id: 0,
+		}
 	}
 
 	/// Create a new `Ext` from overlayed changes and read-only backend
@@ -149,7 +153,11 @@ where
 			.expect("never fails in tests; qed.")
 			.map(|key_value| key_value.expect("never fails in tests; qed."))
 			.map(|(k, v)| (k, Some(v)))
-			.chain(self.overlay.changes().map(|(k, v)| (k.clone(), v.value().cloned())))
+			.chain(
+				self.overlay
+					.changes()
+					.map(|(k, v)| (k.clone(), v.value().cloned())),
+			)
 			.collect::<HashMap<_, _>>()
 			.into_iter()
 			.filter_map(|(k, maybe_val)| maybe_val.map(|val| (k, val)))
@@ -199,7 +207,11 @@ where
 			.overlay
 			.storage(key)
 			.map(|x| x.map(|x| H::hash(x)))
-			.unwrap_or_else(|| self.backend.storage_hash(key).expect(EXT_NOT_ALLOWED_TO_FAIL));
+			.unwrap_or_else(|| {
+				self.backend
+					.storage_hash(key)
+					.expect(EXT_NOT_ALLOWED_TO_FAIL)
+			});
 
 		trace!(
 			target: "state",
@@ -218,7 +230,9 @@ where
 			.child_storage(child_info, key)
 			.map(|x| x.map(|x| x.to_vec()))
 			.unwrap_or_else(|| {
-				self.backend.child_storage(child_info, key).expect(EXT_NOT_ALLOWED_TO_FAIL)
+				self.backend
+					.child_storage(child_info, key)
+					.expect(EXT_NOT_ALLOWED_TO_FAIL)
 			});
 
 		trace!(
@@ -240,7 +254,9 @@ where
 			.child_storage(child_info, key)
 			.map(|x| x.map(|x| H::hash(x)))
 			.unwrap_or_else(|| {
-				self.backend.child_storage_hash(child_info, key).expect(EXT_NOT_ALLOWED_TO_FAIL)
+				self.backend
+					.child_storage_hash(child_info, key)
+					.expect(EXT_NOT_ALLOWED_TO_FAIL)
 			});
 
 		trace!(
@@ -259,7 +275,10 @@ where
 		let _guard = guard();
 		let result = match self.overlay.storage(key) {
 			Some(x) => x.is_some(),
-			_ => self.backend.exists_storage(key).expect(EXT_NOT_ALLOWED_TO_FAIL),
+			_ => self
+				.backend
+				.exists_storage(key)
+				.expect(EXT_NOT_ALLOWED_TO_FAIL),
 		};
 
 		trace!(
@@ -296,8 +315,10 @@ where
 	}
 
 	fn next_storage_key(&self, key: &[u8]) -> Option<StorageKey> {
-		let mut next_backend_key =
-			self.backend.next_storage_key(key).expect(EXT_NOT_ALLOWED_TO_FAIL);
+		let mut next_backend_key = self
+			.backend
+			.next_storage_key(key)
+			.expect(EXT_NOT_ALLOWED_TO_FAIL);
 		let mut overlay_changes = self.overlay.iter_after(key).peekable();
 
 		match (&next_backend_key, overlay_changes.peek()) {
@@ -308,11 +329,11 @@ where
 
 					// If `backend_key` is less than the `overlay_key`, we found out next key.
 					if cmp == Some(Ordering::Less) {
-						return next_backend_key
+						return next_backend_key;
 					} else if overlay_key.1.value().is_some() {
 						// If there exists a value for the `overlay_key` in the overlay
 						// (aka the key is still valid), it means we have found our next key.
-						return Some(overlay_key.0.to_vec())
+						return Some(overlay_key.0.to_vec());
 					} else if cmp == Some(Ordering::Equal) {
 						// If the `backend_key` and `overlay_key` are equal, it means that we need
 						// to search for the next backend key, because the overlay has overwritten
@@ -325,11 +346,11 @@ where
 				}
 
 				next_backend_key
-			},
+			}
 			(None, Some(_)) => {
 				// Find the next overlay key that has a value attached.
 				overlay_changes.find_map(|k| k.1.value().as_ref().map(|_| k.0.to_vec()))
-			},
+			}
 		}
 	}
 
@@ -338,8 +359,10 @@ where
 			.backend
 			.next_child_storage_key(child_info, key)
 			.expect(EXT_NOT_ALLOWED_TO_FAIL);
-		let mut overlay_changes =
-			self.overlay.child_iter_after(child_info.storage_key(), key).peekable();
+		let mut overlay_changes = self
+			.overlay
+			.child_iter_after(child_info.storage_key(), key)
+			.peekable();
 
 		match (&next_backend_key, overlay_changes.peek()) {
 			(_, None) => next_backend_key,
@@ -349,11 +372,11 @@ where
 
 					// If `backend_key` is less than the `overlay_key`, we found out next key.
 					if cmp == Some(Ordering::Less) {
-						return next_backend_key
+						return next_backend_key;
 					} else if overlay_key.1.value().is_some() {
 						// If there exists a value for the `overlay_key` in the overlay
 						// (aka the key is still valid), it means we have found our next key.
-						return Some(overlay_key.0.to_vec())
+						return Some(overlay_key.0.to_vec());
 					} else if cmp == Some(Ordering::Equal) {
 						// If the `backend_key` and `overlay_key` are equal, it means that we need
 						// to search for the next backend key, because the overlay has overwritten
@@ -366,11 +389,11 @@ where
 				}
 
 				next_backend_key
-			},
+			}
 			(None, Some(_)) => {
 				// Find the next overlay key that has a value attached.
 				overlay_changes.find_map(|k| k.1.value().as_ref().map(|_| k.0.to_vec()))
-			},
+			}
 		}
 	}
 
@@ -378,7 +401,7 @@ where
 		let _guard = guard();
 		if is_child_storage_key(&key) {
 			warn!(target: "trie", "Refuse to directly set child storage key");
-			return
+			return;
 		}
 
 		// NOTE: be careful about touching the key names – used outside substrate!
@@ -434,7 +457,12 @@ where
 		let overlay = self.overlay.clear_child_storage(child_info);
 		let (maybe_cursor, backend, loops) =
 			self.limit_remove_from_backend(Some(child_info), None, maybe_limit, maybe_cursor);
-		MultiRemovalResults { maybe_cursor, backend, unique: overlay + backend, loops }
+		MultiRemovalResults {
+			maybe_cursor,
+			backend,
+			unique: overlay + backend,
+			loops,
+		}
 	}
 
 	fn clear_prefix(
@@ -456,13 +484,23 @@ where
 				target: "trie",
 				"Refuse to directly clear prefix that is part or contains of child storage key",
 			);
-			return MultiRemovalResults { maybe_cursor: None, backend: 0, unique: 0, loops: 0 }
+			return MultiRemovalResults {
+				maybe_cursor: None,
+				backend: 0,
+				unique: 0,
+				loops: 0,
+			};
 		}
 
 		let overlay = self.overlay.clear_prefix(prefix);
 		let (maybe_cursor, backend, loops) =
 			self.limit_remove_from_backend(None, Some(prefix), maybe_limit, maybe_cursor);
-		MultiRemovalResults { maybe_cursor, backend, unique: overlay + backend, loops }
+		MultiRemovalResults {
+			maybe_cursor,
+			backend,
+			unique: overlay + backend,
+			loops,
+		}
 	}
 
 	fn clear_child_prefix(
@@ -488,7 +526,12 @@ where
 			maybe_limit,
 			maybe_cursor,
 		);
-		MultiRemovalResults { maybe_cursor, backend, unique: overlay + backend, loops }
+		MultiRemovalResults {
+			maybe_cursor,
+			backend,
+			unique: overlay + backend,
+			loops,
+		}
 	}
 
 	fn storage_append(&mut self, key: Vec<u8>, value: Vec<u8>) {
@@ -504,7 +547,10 @@ where
 
 		let backend = &mut self.backend;
 		let current_value = self.overlay.value_mut_or_insert_with(&key, || {
-			backend.storage(&key).expect(EXT_NOT_ALLOWED_TO_FAIL).unwrap_or_default()
+			backend
+				.storage(&key)
+				.expect(EXT_NOT_ALLOWED_TO_FAIL)
+				.unwrap_or_default()
 		});
 		StorageAppend::new(current_value).append(value);
 	}
@@ -576,8 +622,10 @@ where
 			tx_hash = %HexDisplay::from(&hash),
 		);
 
-		self.overlay
-			.add_transaction_index(IndexOperation::Renew { extrinsic: index, hash: hash.to_vec() });
+		self.overlay.add_transaction_index(IndexOperation::Renew {
+			extrinsic: index,
+			hash: hash.to_vec(),
+		});
 	}
 
 	fn storage_start_transaction(&mut self) {
@@ -675,8 +723,8 @@ where
 			Ok(iter) => iter,
 			Err(error) => {
 				log::debug!(target: "trie", "Error while iterating the storage: {}", error);
-				return (None, 0, 0)
-			},
+				return (None, 0, 0);
+			}
 		};
 
 		let mut delete_count: u32 = 0;
@@ -687,13 +735,13 @@ where
 				Ok(key) => key,
 				Err(error) => {
 					log::debug!(target: "trie", "Error while iterating the storage: {}", error);
-					break
-				},
+					break;
+				}
 			};
 
 			if maybe_limit.map_or(false, |limit| loop_count == limit) {
 				maybe_next_key = Some(key);
-				break
+				break;
 			}
 			let overlay = match child_info {
 				Some(child_info) => self.overlay.child_storage(child_info, &key),
@@ -749,7 +797,7 @@ impl<'a> StorageAppend<'a> {
 					"Failed to append value, resetting storage item to `[value]`.",
 				);
 				value.encode()
-			},
+			}
 		};
 	}
 }
@@ -788,7 +836,9 @@ where
 	B: 'a + Backend<H>,
 {
 	fn extension_by_type_id(&mut self, type_id: TypeId) -> Option<&mut dyn Any> {
-		self.extensions.as_mut().and_then(|exts| exts.get_mut(type_id))
+		self.extensions
+			.as_mut()
+			.and_then(|exts| exts.get_mut(type_id))
 	}
 
 	fn register_extension_with_type_id(
@@ -936,20 +986,32 @@ mod tests {
 		assert_eq!(ext.next_child_storage_key(child_info, &[5]), Some(vec![10]));
 
 		// next_backend == next_overlay but next_overlay is a delete
-		assert_eq!(ext.next_child_storage_key(child_info, &[10]), Some(vec![30]));
+		assert_eq!(
+			ext.next_child_storage_key(child_info, &[10]),
+			Some(vec![30])
+		);
 
 		// next_overlay < next_backend
-		assert_eq!(ext.next_child_storage_key(child_info, &[20]), Some(vec![30]));
+		assert_eq!(
+			ext.next_child_storage_key(child_info, &[20]),
+			Some(vec![30])
+		);
 
 		// next_backend exist but next_overlay doesn't exist
-		assert_eq!(ext.next_child_storage_key(child_info, &[30]), Some(vec![40]));
+		assert_eq!(
+			ext.next_child_storage_key(child_info, &[30]),
+			Some(vec![40])
+		);
 
 		drop(ext);
 		overlay.set_child_storage(child_info, vec![50], Some(vec![50]));
 		let ext = TestExt::new(&mut overlay, &backend, None);
 
 		// next_overlay exist but next_backend doesn't exist
-		assert_eq!(ext.next_child_storage_key(child_info, &[40]), Some(vec![50]));
+		assert_eq!(
+			ext.next_child_storage_key(child_info, &[40]),
+			Some(vec![50])
+		);
 	}
 
 	#[test]
@@ -1042,7 +1104,6 @@ mod tests {
 		let mut append = StorageAppend::new(&mut data);
 		append.append(1u32.encode());
 		append.append(2u32.encode());
-		drop(append);
 
 		assert_eq!(Vec::<u32>::decode(&mut &data[..]).unwrap(), vec![1, 2]);
 
@@ -1051,7 +1112,6 @@ mod tests {
 		let mut append = StorageAppend::new(&mut data);
 		append.append(1u32.encode());
 		append.append(2u32.encode());
-		drop(append);
 
 		assert_eq!(Vec::<u32>::decode(&mut &data[..]).unwrap(), vec![1, 2]);
 	}

@@ -46,7 +46,10 @@ pub struct BasicExternalities {
 impl BasicExternalities {
 	/// Create a new instance of `BasicExternalities`
 	pub fn new(inner: Storage) -> Self {
-		BasicExternalities { overlay: inner.into(), extensions: Default::default() }
+		BasicExternalities {
+			overlay: inner.into(),
+			extensions: Default::default(),
+		}
 	}
 
 	/// New basic externalities with empty storage.
@@ -121,17 +124,35 @@ impl BasicExternalities {
 
 impl PartialEq for BasicExternalities {
 	fn eq(&self, other: &BasicExternalities) -> bool {
-		self.overlay.changes().map(|(k, v)| (k, v.value())).collect::<BTreeMap<_, _>>() ==
-			other.overlay.changes().map(|(k, v)| (k, v.value())).collect::<BTreeMap<_, _>>() &&
-			self.overlay
+		self.overlay
+			.changes()
+			.map(|(k, v)| (k, v.value()))
+			.collect::<BTreeMap<_, _>>()
+			== other
+				.overlay
+				.changes()
+				.map(|(k, v)| (k, v.value()))
+				.collect::<BTreeMap<_, _>>()
+			&& self
+				.overlay
 				.children()
-				.map(|(iter, i)| (i, iter.map(|(k, v)| (k, v.value())).collect::<BTreeMap<_, _>>()))
-				.collect::<BTreeMap<_, _>>() ==
-				other
+				.map(|(iter, i)| {
+					(
+						i,
+						iter.map(|(k, v)| (k, v.value()))
+							.collect::<BTreeMap<_, _>>(),
+					)
+				})
+				.collect::<BTreeMap<_, _>>()
+				== other
 					.overlay
 					.children()
 					.map(|(iter, i)| {
-						(i, iter.map(|(k, v)| (k, v.value())).collect::<BTreeMap<_, _>>())
+						(
+							i,
+							iter.map(|(k, v)| (k, v.value()))
+								.collect::<BTreeMap<_, _>>(),
+						)
 					})
 					.collect::<BTreeMap<_, _>>()
 	}
@@ -153,7 +174,7 @@ impl Default for BasicExternalities {
 
 impl From<BTreeMap<StorageKey, StorageValue>> for BasicExternalities {
 	fn from(map: BTreeMap<StorageKey, StorageValue>) -> Self {
-		Self::from_iter(map.into_iter())
+		Self::from_iter(map)
 	}
 }
 
@@ -161,7 +182,9 @@ impl Externalities for BasicExternalities {
 	fn set_offchain_storage(&mut self, _key: &[u8], _value: Option<&[u8]>) {}
 
 	fn storage(&self, key: &[u8]) -> Option<StorageValue> {
-		self.overlay.storage(key).and_then(|v| v.map(|v| v.to_vec()))
+		self.overlay
+			.storage(key)
+			.and_then(|v| v.map(|v| v.to_vec()))
 	}
 
 	fn storage_hash(&self, key: &[u8]) -> Option<Vec<u8>> {
@@ -169,15 +192,20 @@ impl Externalities for BasicExternalities {
 	}
 
 	fn child_storage(&self, child_info: &ChildInfo, key: &[u8]) -> Option<StorageValue> {
-		self.overlay.child_storage(child_info, key).and_then(|v| v.map(|v| v.to_vec()))
+		self.overlay
+			.child_storage(child_info, key)
+			.and_then(|v| v.map(|v| v.to_vec()))
 	}
 
 	fn child_storage_hash(&self, child_info: &ChildInfo, key: &[u8]) -> Option<Vec<u8>> {
-		self.child_storage(child_info, key).map(|v| Blake2Hasher::hash(&v).encode())
+		self.child_storage(child_info, key)
+			.map(|v| Blake2Hasher::hash(&v).encode())
 	}
 
 	fn next_storage_key(&self, key: &[u8]) -> Option<StorageKey> {
-		self.overlay.iter_after(key).find_map(|(k, v)| v.value().map(|_| k.to_vec()))
+		self.overlay
+			.iter_after(key)
+			.find_map(|(k, v)| v.value().map(|_| k.to_vec()))
 	}
 
 	fn next_child_storage_key(&self, child_info: &ChildInfo, key: &[u8]) -> Option<StorageKey> {
@@ -189,7 +217,7 @@ impl Externalities for BasicExternalities {
 	fn place_storage(&mut self, key: StorageKey, maybe_value: Option<StorageValue>) {
 		if is_child_storage_key(&key) {
 			warn!(target: "trie", "Refuse to set child storage key via main storage");
-			return
+			return;
 		}
 
 		self.overlay.set_storage(key, maybe_value)
@@ -211,7 +239,12 @@ impl Externalities for BasicExternalities {
 		_maybe_cursor: Option<&[u8]>,
 	) -> MultiRemovalResults {
 		let count = self.overlay.clear_child_storage(child_info);
-		MultiRemovalResults { maybe_cursor: None, backend: count, unique: count, loops: count }
+		MultiRemovalResults {
+			maybe_cursor: None,
+			backend: count,
+			unique: count,
+			loops: count,
+		}
 	}
 
 	fn clear_prefix(
@@ -226,11 +259,21 @@ impl Externalities for BasicExternalities {
 				"Refuse to clear prefix that is part of child storage key via main storage"
 			);
 			let maybe_cursor = Some(prefix.to_vec());
-			return MultiRemovalResults { maybe_cursor, backend: 0, unique: 0, loops: 0 }
+			return MultiRemovalResults {
+				maybe_cursor,
+				backend: 0,
+				unique: 0,
+				loops: 0,
+			};
 		}
 
 		let count = self.overlay.clear_prefix(prefix);
-		MultiRemovalResults { maybe_cursor: None, backend: count, unique: count, loops: count }
+		MultiRemovalResults {
+			maybe_cursor: None,
+			backend: count,
+			unique: count,
+			loops: count,
+		}
 	}
 
 	fn clear_child_prefix(
@@ -241,11 +284,18 @@ impl Externalities for BasicExternalities {
 		_maybe_cursor: Option<&[u8]>,
 	) -> MultiRemovalResults {
 		let count = self.overlay.clear_child_prefix(child_info, prefix);
-		MultiRemovalResults { maybe_cursor: None, backend: count, unique: count, loops: count }
+		MultiRemovalResults {
+			maybe_cursor: None,
+			backend: count,
+			unique: count,
+			loops: count,
+		}
 	}
 
 	fn storage_append(&mut self, key: Vec<u8>, value: Vec<u8>) {
-		let current_value = self.overlay.value_mut_or_insert_with(&key, || Default::default());
+		let current_value = self
+			.overlay
+			.value_mut_or_insert_with(&key, Default::default);
 		crate::ext::StorageAppend::new(current_value).append(value);
 	}
 
@@ -259,7 +309,12 @@ impl Externalities for BasicExternalities {
 		// empty root for all child trie. Using null storage key until multiple
 		// type of child trie support.
 		let empty_hash = empty_child_trie_root::<LayoutV1<Blake2Hasher>>();
-		for child_info in self.overlay.children().map(|d| d.1.clone()).collect::<Vec<_>>() {
+		for child_info in self
+			.overlay
+			.children()
+			.map(|d| d.1.clone())
+			.collect::<Vec<_>>()
+		{
 			let child_root = self.child_storage_root(&child_info, state_version);
 			if empty_hash[..] == child_root[..] {
 				top.remove(child_info.prefixed_storage_key().as_slice());
@@ -280,10 +335,11 @@ impl Externalities for BasicExternalities {
 		state_version: StateVersion,
 	) -> Vec<u8> {
 		if let Some((data, child_info)) = self.overlay.child_changes(child_info.storage_key()) {
-			let delta =
-				data.into_iter().map(|(k, v)| (k.as_ref(), v.value().map(|v| v.as_slice())));
+			let delta = data
+				.into_iter()
+				.map(|(k, v)| (k.as_ref(), v.value().map(|v| v.as_slice())));
 			crate::in_memory_backend::new_in_mem::<Blake2Hasher>()
-				.child_storage_root(&child_info, delta, state_version)
+				.child_storage_root(child_info, delta, state_version)
 				.0
 		} else {
 			empty_child_trie_root::<LayoutV1<Blake2Hasher>>()
@@ -398,10 +454,16 @@ mod tests {
 			],
 		});
 
-		assert_eq!(ext.child_storage(child_info, b"doe"), Some(b"reindeer".to_vec()));
+		assert_eq!(
+			ext.child_storage(child_info, b"doe"),
+			Some(b"reindeer".to_vec())
+		);
 
 		ext.set_child_storage(child_info, b"dog".to_vec(), b"puppy".to_vec());
-		assert_eq!(ext.child_storage(child_info, b"dog"), Some(b"puppy".to_vec()));
+		assert_eq!(
+			ext.child_storage(child_info, b"dog"),
+			Some(b"puppy".to_vec())
+		);
 
 		ext.clear_child_storage(child_info, b"dog");
 		assert_eq!(ext.child_storage(child_info, b"dog"), None);

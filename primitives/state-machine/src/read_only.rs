@@ -64,7 +64,10 @@ pub struct ReadOnlyExternalities<'a, H: Hasher, B: 'a + Backend<H>> {
 
 impl<'a, H: Hasher, B: 'a + Backend<H>> From<&'a B> for ReadOnlyExternalities<'a, H, B> {
 	fn from(backend: &'a B) -> Self {
-		ReadOnlyExternalities { backend, _phantom: PhantomData }
+		ReadOnlyExternalities {
+			backend,
+			_phantom: PhantomData,
+		}
 	}
 }
 

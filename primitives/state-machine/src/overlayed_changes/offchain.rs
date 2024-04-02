@@ -37,6 +37,7 @@ type OffchainOverlayedChangesItemOwned = ((Vec<u8>, Vec<u8>), OffchainOverlayedC
 
 impl OffchainOverlayedChanges {
 	/// Consume the offchain storage and iterate over all key value pairs.
+	#[allow(clippy::should_implement_trait)]
 	pub fn into_iter(self) -> impl Iterator<Item = OffchainOverlayedChangesItemOwned> {
 		self.0.into_changes().map(|kv| (kv.0, kv.1.into_value()))
 	}
@@ -53,14 +54,16 @@ impl OffchainOverlayedChanges {
 
 	/// Remove a key and its associated value from the offchain database.
 	pub fn remove(&mut self, prefix: &[u8], key: &[u8]) {
-		let _ = self
-			.0
-			.set((prefix.to_vec(), key.to_vec()), OffchainOverlayedChange::Remove, None);
+		self.0.set(
+			(prefix.to_vec(), key.to_vec()),
+			OffchainOverlayedChange::Remove,
+			None,
+		);
 	}
 
 	/// Set the value associated with a key under a prefix to the value provided.
 	pub fn set(&mut self, prefix: &[u8], key: &[u8], value: &[u8]) {
-		let _ = self.0.set(
+		self.0.set(
 			(prefix.to_vec(), key.to_vec()),
 			OffchainOverlayedChange::SetValue(value.to_vec()),
 			None,

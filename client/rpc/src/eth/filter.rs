@@ -85,6 +85,7 @@ where
 	C: HeaderBackend<B> + 'static,
 	A: ChainApi<Block = B> + 'static,
 {
+	#[allow(clippy::blocks_in_conditions)]
 	fn create_filter(&self, filter_type: FilterType) -> RpcResult<U256> {
 		let info = self.client.info();
 		let best_hash = info.best_hash;

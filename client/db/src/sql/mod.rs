@@ -547,7 +547,7 @@ where
 			for (log_index, log) in receipt_logs.iter().enumerate() {
 				logs.push(Log {
 					address: log.address.as_bytes().to_owned(),
-					topic_1: log.topics.get(0).map(|l| l.as_bytes().to_owned()),
+					topic_1: log.topics.first().map(|l| l.as_bytes().to_owned()),
 					topic_2: log.topics.get(1).map(|l| l.as_bytes().to_owned()),
 					topic_3: log.topics.get(2).map(|l| l.as_bytes().to_owned()),
 					topic_4: log.topics.get(3).map(|l| l.as_bytes().to_owned()),
@@ -605,7 +605,7 @@ where
 		.map(|result| {
 			result
 				.map(|row| {
-					let is_canon: i32 = row.get(0);
+					let is_canon: i32 = row.first();
 					BlockIndexedStatus {
 						indexed: true,
 						canon: is_canon != 0,
@@ -644,7 +644,7 @@ where
 		{
 			Ok(result) => {
 				if let Some(row) = result {
-					let block_number: u32 = row.get(0);
+					let block_number: u32 = row.first();
 					return Some(block_number);
 				}
 			}
@@ -672,7 +672,7 @@ where
 		{
 			Ok(result) => {
 				if let Some(row) = result {
-					let block_hash_bytes: Vec<u8> = row.get(0);
+					let block_hash_bytes: Vec<u8> = row.first();
 					let block_hash = H256::from_slice(&block_hash_bytes[..]);
 					return Some(block_hash);
 				}
