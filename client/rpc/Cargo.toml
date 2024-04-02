@@ -58,10 +58,12 @@ fc-api = { workspace = true }
 fp-evm = { workspace = true, features = ["default"] }
 fp-storage = { workspace = true, features = ["default"] }
 pallet-evm = { workspace = true, features = ["default"] }
+tp-signer = { workspace = true, features = ["std"] }
 # Tenet
 tc-mapping-sync = { workspace = true }
 tc-rpc-core = { workspace = true }
 tc-storage = { workspace = true }
+tp-io = { workspace = true, features = ["default"] }
 tp-rpc = { workspace = true, features = ["default"] }
 
 [features]

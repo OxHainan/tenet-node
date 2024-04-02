@@ -13,6 +13,7 @@ fc-rpc-core = { workspace = true }
 jsonrpsee = { workspace = true, features = ["server", "macros"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
+tp-signer = { workspace = true, features = ["std"] }
 # Tenet
 hex = "0.4"
 tp-ethereum = { workspace = true }

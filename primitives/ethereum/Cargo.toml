@@ -22,11 +22,12 @@ serde = { workspace = true, optional = true }
 
 #Substrate
 sp-core = { workspace = true }
+sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 [features]
 default = ["std", "with-codec"]
-std = ["scale-codec/std", "rlp/std", "hash-db/std", "sp-std/std", "sp-core/std"]
+std = ["scale-codec/std", "rlp/std", "hash-db/std", "sp-std/std", "sp-core/std", "sp-runtime/std"]
 
 with-codec = [
 	"scale-codec",
@@ -34,8 +35,8 @@ with-codec = [
 	"ethereum-types/codec",
 	"ethereum/with-codec",
 ]
-with-serde = [
-	"serde",
+serde = [
+	"dep:serde",
 	"ethereum-types/serialize",
 	"ethereum/with-serde",
 ]
