@@ -24,6 +24,8 @@ fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 fp-storage = { workspace = true }
 pallet-evm = { workspace = true }
+# Tenet
+tenet = { workspace = true }
 
 [features]
 default = ["std"]

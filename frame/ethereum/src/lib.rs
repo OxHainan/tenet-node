@@ -45,6 +45,9 @@ pub use fp_rpc::TransactionStatus;
 use fp_storage::{EthereumStorageSchema, PALLET_ETHEREUM_SCHEMA};
 use pallet_evm::{BlockHashMapping, FeeCalculator, GasWeightMapping, Runner};
 
+// Tenet
+use tenet::model::PoM;
+
 #[derive(Clone, Eq, PartialEq, RuntimeDebug)]
 #[derive(Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub enum RawOrigin {
@@ -652,6 +655,28 @@ impl<T: Config> Pallet<T> {
 				}),
 			}
 		};
+
+		// Generate PoM struct
+		let pom = PoM {
+			challenge_id: transaction_hash, 
+			root_id: transaction_hash,
+			tx: transaction.clone(),
+			timeout: 12,
+			caller: source,
+			callee: to,
+			state: tenet::fsm::State::Default,
+		};
+
+		if status.to.is_some() && status.contract_address.is_some() {
+			// cross app call
+			// cache pom
+			tenet::call_tree::cache_pom(pom.clone());
+			// Check response
+			if !tenet::call_tree::check_response(pom.clone()) {
+				// Set timeout
+				tenet::timer::start_call_timer(pom);
+			} 
+		}
 
 		Pending::<T>::append((transaction, status, receipt));
 

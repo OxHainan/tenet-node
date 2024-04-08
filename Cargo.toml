@@ -4,7 +4,7 @@ members = [
 	"bin/node",
 	"client/executor",
 	"frame/ethereum",
-	"utils/ethereum",
+	"utils/ethereum", "utils/tenet",
 ]
 
 resolver = "2"
@@ -27,8 +27,8 @@ bn = { package = "substrate-bn", version = "0.6", default-features = false }
 clap = { version = "4.4.3", features = ["derive", "deprecated"] }
 derive_more = "0.99"
 environmental = { version = "1.1.4", default-features = false }
-ethereum = { version = "0.15.0", default-features = false }
-ethereum-types = { version = "0.14.1", default-features = false }
+ethereum = { version = "0.15.0", default-features = false, features = ["with-serde"]}
+ethereum-types = { version = "0.14.1", default-features = false, features = ["serialize"] }
 evm = { version = "0.41.1", default-features = false }
 futures = "0.3.28"
 hash-db = { version = "0.16.0", default-features = false }
@@ -160,9 +160,11 @@ pallet-hotfix-sufficients = { version = "1.0.0", git = "https://github.com/OxHai
 pallet-ethereum = { version = "4.0.0-dev", path = "frame/ethereum", default-features = false }
 tc-executor = { version = "0.29.0", path = "client/executor" }
 tenet-runtime = { version = "1.0.0-dev", path = "bin/runtime" }
+tenet = { version = "0.1.0", default-features = false }
 
 [patch.crates-io]
 ethereum = { version = "0.15", path = "utils/ethereum" }
+tenet = { version = "0.1.0", path = "utils/tenet" }
 [profile.release]
 # Substrate runtime requires unwinding.
 panic = "unwind"
