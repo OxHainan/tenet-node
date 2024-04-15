@@ -1,0 +1,418 @@
+[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			}
+		],
+		"name": "ChallengeEvent",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "peerId",
+				"type": "string"
+			}
+		],
+		"name": "deleteTEE",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "peerId",
+				"type": "string"
+			}
+		],
+		"name": "getQuote",
+		"outputs": [
+			{
+				"internalType": "uint32",
+				"name": "",
+				"type": "uint32"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			},
+			{
+				"internalType": "uint32",
+				"name": "",
+				"type": "uint32"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "bytes",
+						"name": "challengeId",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes",
+						"name": "rootId",
+						"type": "bytes"
+					},
+					{
+						"components": [
+							{
+								"internalType": "bytes",
+								"name": "txId",
+								"type": "bytes"
+							},
+							{
+								"internalType": "uint128",
+								"name": "nonce",
+								"type": "uint128"
+							},
+							{
+								"internalType": "uint128",
+								"name": "gasPrice",
+								"type": "uint128"
+							},
+							{
+								"internalType": "uint128",
+								"name": "gasLimit",
+								"type": "uint128"
+							},
+							{
+								"internalType": "address",
+								"name": "to",
+								"type": "address"
+							},
+							{
+								"internalType": "uint128",
+								"name": "value",
+								"type": "uint128"
+							},
+							{
+								"internalType": "bytes",
+								"name": "input",
+								"type": "bytes"
+							},
+							{
+								"internalType": "uint8",
+								"name": "v",
+								"type": "uint8"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "r",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "s",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "uint128",
+								"name": "chainId",
+								"type": "uint128"
+							}
+						],
+						"internalType": "struct TENET.Transaction",
+						"name": "tx",
+						"type": "tuple"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timeout",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "caller",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "callee",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "callDepth",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "status",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct TENET.ChallengeData",
+				"name": "data",
+				"type": "tuple"
+			}
+		],
+		"name": "newChallenge",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "peerId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "appAddr",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "method",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timeout",
+				"type": "uint256"
+			}
+		],
+		"name": "registerApi",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "peerId",
+				"type": "string"
+			},
+			{
+				"internalType": "uint32",
+				"name": "quoteSize",
+				"type": "uint32"
+			},
+			{
+				"internalType": "bytes",
+				"name": "quoteBuf",
+				"type": "bytes"
+			},
+			{
+				"internalType": "uint32",
+				"name": "supSize",
+				"type": "uint32"
+			},
+			{
+				"internalType": "bytes",
+				"name": "supBuf",
+				"type": "bytes"
+			},
+			{
+				"internalType": "string",
+				"name": "teePublicKey",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "p2pConnectInfo",
+				"type": "string"
+			}
+		],
+		"name": "registerTEE",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "bytes",
+						"name": "challengeId",
+						"type": "bytes"
+					},
+					{
+						"internalType": "address",
+						"name": "caller",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "callee",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes[]",
+						"name": "param",
+						"type": "bytes[]"
+					},
+					{
+						"internalType": "bytes[]",
+						"name": "output",
+						"type": "bytes[]"
+					},
+					{
+						"internalType": "bytes[]",
+						"name": "newStates",
+						"type": "bytes[]"
+					},
+					{
+						"components": [
+							{
+								"internalType": "bytes",
+								"name": "txId",
+								"type": "bytes"
+							},
+							{
+								"internalType": "uint128",
+								"name": "nonce",
+								"type": "uint128"
+							},
+							{
+								"internalType": "uint128",
+								"name": "gasPrice",
+								"type": "uint128"
+							},
+							{
+								"internalType": "uint128",
+								"name": "gasLimit",
+								"type": "uint128"
+							},
+							{
+								"internalType": "address",
+								"name": "to",
+								"type": "address"
+							},
+							{
+								"internalType": "uint128",
+								"name": "value",
+								"type": "uint128"
+							},
+							{
+								"internalType": "bytes",
+								"name": "input",
+								"type": "bytes"
+							},
+							{
+								"internalType": "uint8",
+								"name": "v",
+								"type": "uint8"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "r",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "s",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "uint128",
+								"name": "chainId",
+								"type": "uint128"
+							}
+						],
+						"internalType": "struct TENET.Transaction",
+						"name": "tx",
+						"type": "tuple"
+					}
+				],
+				"internalType": "struct TENET.ResponseData",
+				"name": "data",
+				"type": "tuple"
+			}
+		],
+		"name": "response",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "appAddr",
+				"type": "string"
+			},
+			{
+				"internalType": "bytes",
+				"name": "challengeId",
+				"type": "bytes"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timeout",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "status",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "peerId",
+				"type": "string"
+			},
+			{
+				"internalType": "bytes",
+				"name": "sig",
+				"type": "bytes"
+			}
+		],
+		"name": "updateChallenge",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "peerId",
+				"type": "string"
+			},
+			{
+				"internalType": "bytes",
+				"name": "challengeId",
+				"type": "bytes"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			},
+			{
+				"internalType": "bytes",
+				"name": "sig",
+				"type": "bytes"
+			}
+		],
+		"name": "updateChallengeBytes",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

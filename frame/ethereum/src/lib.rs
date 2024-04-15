@@ -44,6 +44,10 @@ use fp_evm::{
 use fp_storage::{EthereumStorageSchema, PALLET_ETHEREUM_SCHEMA};
 use pallet_evm::{BlockHashMapping, FeeCalculator, GasWeightMapping, Runner};
 pub use tp_rpc::TransactionStatus;
+use tenet::model::PoM;
+
+pub const ENABLE_POC: bool = false;
+pub const ENABLE_POM: bool = false;
 
 #[derive(Clone, Eq, PartialEq, RuntimeDebug)]
 #[derive(Encode, Decode, MaxEncodedLen, TypeInfo)]
@@ -321,6 +325,11 @@ pub mod pallet {
 	#[pallet::storage]
 	pub type BlockHash<T: Config> = StorageMap<_, Twox64Concat, U256, H256, ValueQuery>;
 
+	// mapping for transaction id and poc.
+	#[pallet::storage]
+	#[pallet::getter(fn transaction_poc)]
+	pub type TransactionPoc<T: Config> = StorageMap<_, Twox64Concat, H256, Vec<u8>, ValueQuery>;
+
 	#[pallet::storage]
 	#[pallet::getter(fn account_public)]
 	pub type AccountPublic<T: Config> = StorageMap<_, Blake2_128Concat, H160, Vec<u8>, ValueQuery>;
@@ -472,6 +481,17 @@ impl<T: Config> Pallet<T> {
 			}
 			None => { /* do nothing*/ }
 		}
+	}
+
+	fn generate_poc(transaction: &Transaction, receipt: &Receipt) {
+		let seed = 0;
+		let private_key = H256::from_slice(&[(seed + 1) as u8; 32]);
+		let input_hash = tenet_app::TenetApi::generate_input_hash(&transaction);
+		let output_hash = tenet_app::TenetApi::generate_output_hash(&receipt);
+		let poc = fp_poc::generate_poc(
+			private_key,
+			&vec![fp_poc::IOHash{input_hash, output_hash}]);
+		TransactionPoc::<T>::insert(transaction.hash(), rlp::encode(&poc).encode());
 	}
 
 	fn logs_bloom(logs: Vec<Log>, bloom: &mut Bloom) {
@@ -682,6 +702,33 @@ impl<T: Config> Pallet<T> {
 				}),
 			}
 		};
+
+		// Generate poc
+		if ENABLE_POC {
+			Self::generate_poc(&transaction, &receipt);
+		}
+
+		if ENABLE_POM {
+			// Generate PoM struct
+			let pom = PoM {
+				challenge_id: transaction_hash,
+				root_id: transaction_hash,
+				tx: transaction.clone(),
+				timeout: 12,
+				caller: source,
+				callee: to,
+				state: tenet::fsm::State::Default,
+			};
+			if status.to.is_some() && status.contract_address.is_some() {
+				// cache pom
+				tenet::call_tree::cache_pom(pom.clone());
+				// Check response
+				if !tenet::call_tree::check_response(pom.clone()) {
+					// Set timeout
+					tenet::timer::start_call_timer(pom);
+				}
+			}
+		}
 
 		Pending::<T>::append((transaction, status, receipt));
 

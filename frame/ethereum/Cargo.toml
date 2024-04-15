@@ -25,6 +25,10 @@ fp-storage = { workspace = true }
 pallet-evm = { workspace = true }
 # Tenet
 tp-rpc = { workspace = true }
+tenet = { workspace = true }
+fp-poc = { workspace = true }
+tenet-app = { workspace = true }
+rlp = { workspace = true }
 
 [features]
 default = ["std"]
@@ -32,7 +36,7 @@ std = [
 	"tp-ethereum/std",
 	"evm/std",
 	"ethereum-types/std",
-	# "rlp/std",
+	"rlp/std",
 	"scale-codec/std",
 	"scale-info/std",
 	# Substrate
