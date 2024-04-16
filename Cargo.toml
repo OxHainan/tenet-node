@@ -17,6 +17,9 @@ members = [
 	"primitives/account",
 	"primitives/io",
 	"primitives/state-machine",
+	"primitives/tenet",
+	"primitives/tenet-app",
+	"primitives/poc",
 ]
 
 resolver = "2"
@@ -33,8 +36,8 @@ bytes = { version = "1.5" }
 clap = { version = "4.4.3", features = ["derive", "deprecated"] }
 derive_more = "0.99"
 environmental = { version = "1.1.4", default-features = false }
-ethereum = { version = "0.15.0", default-features = false }
-ethereum-types = { version = "0.14.1", default-features = false }
+ethereum = { version = "0.15.0", default-features = false, features = ["with-serde"]}
+ethereum-types = { version = "0.14.1", default-features = false, features = ["serialize"]}
 evm = { version = "0.41.1", default-features = false }
 futures = "0.3.28"
 hash-db = { version = "0.16.0", default-features = false }
@@ -186,11 +189,16 @@ tp-ethereum = { path = "primitives/ethereum" }
 tp-io = { path = "primitives/io" }
 tp-rpc = { path = "primitives/rpc" }
 tp-signer = { path = "primitives/account" }
+tenet = { version = "0.1.0", default-features = false }
+fp-poc = { version = "1.0.0", path = "primitives/poc", default-features = false }
+tenet-app = { version = "1.0.0", path = "primitives/tenet-app", default-features = false }
+
 
 [patch.crates-io]
 jsonrpsee = { git = "https://github.com/yingjun-wu/jsonrpsee.git", branch = "tls-0.16.3" }
 sc-rpc-server = { path = "client/rpc-server" }
 sp-state-machine = { path = "primitives/state-machine" }
+tenet = { version = "0.1.0", path = "primitives/tenet" }
 
 [profile.release]
 # Substrate runtime requires unwinding.

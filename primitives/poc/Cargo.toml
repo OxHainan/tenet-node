@@ -1,0 +1,26 @@
+[package]
+name = "fp-poc"
+version = "1.0.0"
+license = "Apache-2.0"
+description = "Primitives for tenet poc."
+authors = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sp-std = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+rlp = { workspace = true }
+secp256k1 = "0.29.0"
+
+[features]
+default = ["std"]
+std = [
+	"sp-std/std",
+    "sp-core/std",
+    "sp-io/std",
+    "rlp/std",
+]
