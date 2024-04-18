@@ -1,9 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_core::{H256, U256, Bytes};
-use sp_std::vec::Vec;
-use tp_ethereum::{Receipt, Log, AccessListItem, TransactionV2 as Transaction};
 use rlp::{Encodable, RlpStream};
+use sp_core::{Bytes, H256, U256};
+use sp_std::vec::Vec;
+use tp_ethereum::{AccessListItem, Log, Receipt, TransactionV2 as Transaction};
 extern crate alloc;
 
 pub struct TxInput {
@@ -18,13 +18,13 @@ pub struct TxInput {
 	s: H256,
 }
 impl TxInput {
-    pub fn hash(&self) -> H256 {
-      let encoded = rlp::encode(self);
+	pub fn hash(&self) -> H256 {
+		let encoded = rlp::encode(self);
 		let mut out = alloc::vec![0; 1 + encoded.len()];
 		out[0] = 2;
 		out[1..].copy_from_slice(&encoded);
-        H256::from(sp_io::hashing::keccak_256(&out))
-    }
+		H256::from(sp_io::hashing::keccak_256(&out))
+	}
 }
 impl Encodable for TxInput {
 	fn rlp_append(&self, s: &mut RlpStream) {
@@ -47,13 +47,13 @@ pub struct TxOutput {
 	pub logs: Vec<Log>,
 }
 impl TxOutput {
-    pub fn hash(&self) -> H256 {
-      let encoded = rlp::encode(self);
+	pub fn hash(&self) -> H256 {
+		let encoded = rlp::encode(self);
 		let mut out = alloc::vec![0; 1 + encoded.len()];
 		out[0] = 2;
 		out[1..].copy_from_slice(&encoded);
-        H256::from(sp_io::hashing::keccak_256(&out))
-    }
+		H256::from(sp_io::hashing::keccak_256(&out))
+	}
 }
 impl Encodable for TxOutput {
 	fn rlp_append(&self, s: &mut RlpStream) {
@@ -63,30 +63,30 @@ impl Encodable for TxOutput {
 			.append_list(&self.logs);
 	}
 }
-pub struct TenetApi{}
+pub struct TenetApi {}
 impl TenetApi {
 	pub fn generate_input_hash(transaction: &Transaction) -> H256 {
 		transaction.hash()
 	}
 
-    pub fn generate_output_hash(receipt: &Receipt) -> H256 {
-        let tenet_app_output = match receipt {
+	pub fn generate_output_hash(receipt: &Receipt) -> H256 {
+		let tenet_app_output = match receipt {
 			Receipt::Legacy(t) => TxOutput {
-                status_code: t.status_code,
-                used_gas: t.used_gas,
-                logs: t.logs.clone(),
+				status_code: t.status_code,
+				used_gas: t.used_gas,
+				logs: t.logs.clone(),
 			},
 			Receipt::EIP2930(t) => TxOutput {
-                status_code: t.status_code,
-                used_gas: t.used_gas,
-                logs: t.logs.clone(),
+				status_code: t.status_code,
+				used_gas: t.used_gas,
+				logs: t.logs.clone(),
 			},
 			Receipt::EIP1559(t) => TxOutput {
-                status_code: t.status_code,
-                used_gas: t.used_gas,
-                logs: t.logs.clone(),
+				status_code: t.status_code,
+				used_gas: t.used_gas,
+				logs: t.logs.clone(),
 			},
 		};
-        tenet_app_output.hash()
-    }
+		tenet_app_output.hash()
+	}
 }

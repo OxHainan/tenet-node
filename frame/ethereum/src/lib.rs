@@ -43,8 +43,8 @@ use fp_evm::{
 };
 use fp_storage::{EthereumStorageSchema, PALLET_ETHEREUM_SCHEMA};
 use pallet_evm::{BlockHashMapping, FeeCalculator, GasWeightMapping, Runner};
-pub use tp_rpc::TransactionStatus;
 use tenet::model::PoM;
+pub use tp_rpc::TransactionStatus;
 
 pub const ENABLE_POC: bool = false;
 pub const ENABLE_POM: bool = false;
@@ -486,11 +486,15 @@ impl<T: Config> Pallet<T> {
 	fn generate_poc(transaction: &Transaction, receipt: &Receipt) {
 		let seed = 0;
 		let private_key = H256::from_slice(&[(seed + 1) as u8; 32]);
-		let input_hash = tenet_app::TenetApi::generate_input_hash(&transaction);
-		let output_hash = tenet_app::TenetApi::generate_output_hash(&receipt);
+		let input_hash = tenet_app::TenetApi::generate_input_hash(transaction);
+		let output_hash = tenet_app::TenetApi::generate_output_hash(receipt);
 		let poc = fp_poc::generate_poc(
 			private_key,
-			&vec![fp_poc::IOHash{input_hash, output_hash}]);
+			&vec![fp_poc::IOHash {
+				input_hash,
+				output_hash,
+			}],
+		);
 		TransactionPoc::<T>::insert(transaction.hash(), rlp::encode(&poc).encode());
 	}
 
