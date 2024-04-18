@@ -62,11 +62,7 @@ async fn manual_deploy_tenet() -> Result<(), Box<dyn std::error::Error>> {
 	let transaction_hash = web3.eth().send_transaction(deploy_transaction).await?;
 
 	loop {
-		match web3
-			.eth()
-			.transaction_receipt(transaction_hash)
-			.await?
-		{
+		match web3.eth().transaction_receipt(transaction_hash).await? {
 			Some(receipt) => {
 				println!(
 					"Contract TENET deployed at address: {}",
@@ -269,7 +265,10 @@ pub async fn update_challenge_bytes(
 	let contract_address: Address = TENET_CONTRACT_L1_ADDR.parse()?;
 	let abi = fs::read_to_string(TENET_BYTECODE_ABI).expect("Failed to read ABI file");
 	let contract = Contract::from_json(web3.eth(), contract_address, abi.as_bytes())?;
-	let options = Options{ gas: Some(4_000_000.into()), ..Default::default() };
+	let options = Options {
+		gas: Some(4_000_000.into()),
+		..Default::default()
+	};
 	println!(
 		"pom:{:?}, bytes:{:?}",
 		pom.to_json(),
