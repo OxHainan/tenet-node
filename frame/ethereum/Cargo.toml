@@ -24,11 +24,11 @@ fp-evm = { workspace = true }
 fp-storage = { workspace = true }
 pallet-evm = { workspace = true }
 # Tenet
-tp-rpc = { workspace = true }
-tenet = { workspace = true }
 fp-poc = { workspace = true }
-tenet-app = { workspace = true }
 rlp = { workspace = true }
+tenet = { workspace = true }
+tenet-app = { workspace = true }
+tp-rpc = { workspace = true }
 
 [features]
 default = ["std"]

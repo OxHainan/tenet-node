@@ -10,17 +10,17 @@ repository = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sp-std = { workspace = true }
-sp-core = { workspace = true }
-sp-io = { workspace = true }
 rlp = { workspace = true }
 secp256k1 = "0.29.0"
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-std = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
 	"sp-std/std",
-    "sp-core/std",
-    "sp-io/std",
-    "rlp/std",
+	"sp-core/std",
+	"sp-io/std",
+	"rlp/std",
 ]
