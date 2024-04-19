@@ -25,7 +25,7 @@ http = "0.2.8"
 jsonrpsee = { workspace = true, features = ["server", "server-with-tls"] }
 log = { workspace = true }
 prometheus-endpoint = { workspace = true }
-rustls = { version = "0.23.4", default-features = false, features = ["ring"] }
+rustls = { version = "0.23.5", default-features = false, features = ["ring"] }
 rustls-pemfile = "2.1.1"
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["parking_lot"] }
