@@ -103,7 +103,7 @@ pub fn development_config(enable_manual_seal: Option<bool>) -> DevChainSpec {
 					// Initial PoA authorities
 					vec![authority_keys_from_seed("Alice")],
 					// Ethereum chain ID
-					SS58Prefix::get() as u64,
+					1337,
 				),
 				enable_manual_seal,
 			}
@@ -148,7 +148,7 @@ pub fn local_testnet_config() -> ChainSpec {
 					authority_keys_from_seed("Alice"),
 					authority_keys_from_seed("Bob"),
 				],
-				1024,
+				1337,
 			)
 		},
 		// Bootnodes
@@ -236,7 +236,31 @@ fn testnet_genesis(
 				);
 				map.insert(
 					// H160 address of CI test runner account
+					H160::from_str("8D0D2E8AbBB4ff4FB3A2E692E4c16e2A6d0352d3")
+						.expect("internal H160 is valid; qed"),
+					fp_evm::GenesisAccount {
+						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+							.expect("internal U256 is valid; qed"),
+						code: Default::default(),
+						nonce: Default::default(),
+						storage: Default::default(),
+					},
+				);
+				map.insert(
+					// H160 address of CI test runner account
 					H160::from_str("19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A")
+						.expect("internal H160 is valid; qed"),
+					fp_evm::GenesisAccount {
+						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+							.expect("internal U256 is valid; qed"),
+						code: Default::default(),
+						nonce: Default::default(),
+						storage: Default::default(),
+					},
+				);
+				map.insert(
+					// H160 address of CI test runner account
+					H160::from_str("40Ae8BcB82875f63eD122cd0F70F46ce87168011")
 						.expect("internal H160 is valid; qed"),
 					fp_evm::GenesisAccount {
 						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
@@ -255,6 +279,17 @@ fn testnet_genesis(
 						balance: U256::from(1_000_000_000_000_000_000_000_000u128),
 						storage: Default::default(),
 						code: vec![],
+					},
+				);
+				map.insert(
+					// H160 address for benchmark usage
+					H160::from_str("4e59b44847b379578588920ca78fbf26c0b4956c")
+						.expect("internal H160 is valid; qed"),
+					fp_evm::GenesisAccount {
+						nonce: U256::from(1),
+						code: hex::decode("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3").expect("internal hex decode; qed"),
+						storage: Default::default(),
+						balance: U256::from(0),
 					},
 				);
 				map

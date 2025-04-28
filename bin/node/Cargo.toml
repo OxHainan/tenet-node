@@ -26,6 +26,7 @@ log = { workspace = true }
 scale-codec = { workspace = true }
 serde = { workspace = true }
 tc-executor = { workspace = true }
+hex = { workspace = true }
 # Substrate
 prometheus-endpoint = { workspace = true }
 sc-basic-authorship = { workspace = true }

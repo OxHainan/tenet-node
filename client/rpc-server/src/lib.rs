@@ -98,18 +98,9 @@ pub async fn start_server<M: Send + Sync + 'static>(
 		.layer(ProxyGetRequestLayer::new("/health", "system_health")?)
 		.layer(try_into_cors(cors)?);
 
-	let certs = load_certs("/root/sample.pem")?;
-	let key = load_private_key("/root/sample.rsa")?;
-
 	let mut builder = ServerBuilder::new()
 		.max_request_body_size(max_payload_in_mb.saturating_mul(MEGABYTE))
 		.max_response_body_size(max_payload_out_mb.saturating_mul(MEGABYTE))
-		.set_tls(
-			ServerConfig::builder()
-				.with_no_client_auth()
-				.with_single_cert(certs, key)
-				.map_err(|e| error(e.to_string()))?,
-		)
 		.max_connections(max_connections)
 		.max_subscriptions_per_connection(max_subs_per_conn)
 		.ping_interval(std::time::Duration::from_secs(30))

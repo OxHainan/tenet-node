@@ -22,7 +22,7 @@ repository = "https://github.com/paritytech/polkadot-sdk.git"
 
 [dependencies]
 http = "0.2.8"
-jsonrpsee = { workspace = true, features = ["server", "server-with-tls"] }
+jsonrpsee = { workspace = true, features = ["server"] }
 log = { workspace = true }
 prometheus-endpoint = { workspace = true }
 rustls = { version = "0.23.4", default-features = false, features = ["ring"] }
