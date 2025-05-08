@@ -145,7 +145,7 @@ pub trait EthApi {
 	async fn transaction_receipt(
 		&self,
 		hash: H256,
-		signature: Option<tp_signer::EthereumSignature>,
+		from: Option<H160>,
 	) -> RpcResult<Option<Receipt>>;
 
 	// ########################################################################

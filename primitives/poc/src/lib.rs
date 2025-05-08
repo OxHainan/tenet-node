@@ -3,7 +3,6 @@ use rlp::{Encodable, RlpEncodable, RlpStream};
 use secp256k1::{ecdsa::Signature, Message, Secp256k1, SecretKey};
 use sp_core::H256;
 use sp_std::{collections::vec_deque::VecDeque, vec::Vec};
-
 #[derive(Clone)]
 pub struct PoC {
 	io_hash_list: Vec<IOHash>,
@@ -12,7 +11,7 @@ pub struct PoC {
 impl Encodable for PoC {
 	fn rlp_append(&self, s: &mut RlpStream) {
 		s.append_list(&self.io_hash_list);
-		s.append(&self.sign.to_string().as_bytes());
+		// s.append(&self.sign.to_string().as_bytes());
 	}
 }
 
