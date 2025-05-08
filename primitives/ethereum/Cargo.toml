@@ -33,7 +33,7 @@ with-codec = [
 	"scale-codec",
 	"scale-info",
 	"ethereum-types/codec",
-	"ethereum/with-codec",
+	"ethereum/with-scale",
 ]
 serde = [
 	"dep:serde",

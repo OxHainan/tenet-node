@@ -42,7 +42,7 @@ use sc_transaction_pool_api::TransactionPool;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::HeaderBackend;
-use sp_core::hashing::keccak_256;
+use sp_core::{hashing::keccak_256, H512};
 use sp_inherents::CreateInherentDataProviders;
 use sp_runtime::traits::{Block as BlockT, UniqueSaturatedInto};
 // Frontier
@@ -676,6 +676,26 @@ fn transaction_build(
 		}
 	}
 
+	let pubkey = match public_key(&ethereum_transaction) {
+		Ok(p) => Some(p),
+		Err(_e) => None,
+	};
+
+	transaction.to = status.as_ref().map_or(
+		{
+			let action = match ethereum_transaction {
+				EthereumTransaction::Legacy(t) => t.action,
+				EthereumTransaction::EIP2930(t) => t.action,
+				EthereumTransaction::EIP1559(t) => t.action(),
+			};
+			match action {
+				ethereum::TransactionAction::Call(to) => Some(to),
+				_ => None,
+			}
+		},
+		|status| status.to,
+	);
+
 	// Block hash.
 	transaction.block_hash = block.map(|block| block.header.hash());
 	// Block number.
@@ -688,7 +708,18 @@ fn transaction_build(
 	});
 	// Creates.
 	transaction.creates = status.and_then(|status| status.contract_address);
-
+	// From.
+	transaction.from = status.as_ref().map_or(
+		{
+			match pubkey {
+				Some(pk) => H160::from(H256::from(keccak_256(&pk))),
+				_ => H160::default(),
+			}
+		},
+		|status| status.from,
+	);
+	// Public key.
+	transaction.public_key = pubkey.as_ref().map(H512::from);
 	transaction
 }
 

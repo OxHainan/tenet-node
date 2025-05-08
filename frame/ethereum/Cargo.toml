@@ -8,6 +8,7 @@ repository.workspace = true
 [dependencies]
 ethereum-types = { workspace = true }
 evm = { workspace = true, features = ["with-codec"] }
+ethereum = { workspace = true, features = ["with-codec"] }
 scale-codec = { workspace = true }
 scale-info = { workspace = true }
 tp-ethereum = { workspace = true, features = ["with-codec"] }
@@ -21,6 +22,7 @@ sp-std = { workspace = true }
 fp-consensus = { workspace = true }
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
+tp-io = { workspace = true }
 fp-storage = { workspace = true }
 pallet-evm = { workspace = true }
 # Tenet

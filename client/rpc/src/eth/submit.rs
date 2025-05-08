@@ -26,6 +26,7 @@ use sc_transaction_pool_api::TransactionPool;
 use sp_api::{ApiExt, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::HeaderBackend;
+use sp_core::H160;
 use sp_inherents::CreateInherentDataProviders;
 use sp_runtime::{traits::Block as BlockT, transaction_validity::TransactionSource};
 // Frontier
@@ -139,7 +140,40 @@ where
 		}
 
 		let transaction = match transaction {
-			Some(transaction) => transaction,
+			Some(transaction) => {
+				let (action, is_eip1559) = match &transaction {
+					ethereum::TransactionV2::Legacy(t) => (t.action, false),
+					ethereum::TransactionV2::EIP2930(t) => (t.action, false),
+					ethereum::TransactionV2::EIP1559(t) => (t.action(), true),
+				};
+				if action == tp_ethereum::TransactionAction::Create || !is_eip1559 {
+					transaction
+				} else {
+					let pubkey = match crate::public_key(&transaction) {
+						Ok(pubkey) => pubkey,
+						Err(_) => return Err(internal_err("cannot recover public key")),
+					};
+
+					let from = H160::from(H256::from(sp_core::keccak_256(&pubkey)));
+
+					if self
+						.client
+						.runtime_api()
+						.has_account_public_key(block_hash, from)
+						.unwrap_or_default()
+					{
+						transaction
+					} else {
+						match transaction.encrypt(|msg, aad| {
+							tp_io::crypto::encrypted(msg, aad.as_fixed_bytes(), &pubkey)
+								.map_err(|_| ethereum::Error::BadEncrypte)
+						}) {
+							Ok(transaction) => transaction,
+							Err(_) => return Err(internal_err("cannot encrypted transaction")),
+						}
+					}
+				}
+			},
 			None => return Err(internal_err("no signer available")),
 		};
 		let transaction_hash = transaction.hash();
@@ -158,10 +192,45 @@ where
 		if bytes.is_empty() {
 			return Err(internal_err("transaction data is empty"));
 		}
+		let block_hash = self.client.info().best_hash;
 
 		let transaction: tp_ethereum::TransactionV2 =
 			match tp_ethereum::EnvelopedDecodable::decode(&bytes) {
-				Ok(transaction) => transaction,
+				Ok(transaction) => {
+					let (action, is_eip1559) = match &transaction {
+						ethereum::TransactionV2::Legacy(t) => (t.action, false),
+						ethereum::TransactionV2::EIP2930(t) => (t.action, false),
+						ethereum::TransactionV2::EIP1559(t) => (t.action(), true),
+					};
+					if action == tp_ethereum::TransactionAction::Create || !is_eip1559 {
+						transaction
+					} else {
+						let pubkey = match crate::public_key(&transaction) {
+							Ok(pubkey) => pubkey,
+							Err(_) => return Err(internal_err("cannot recover public key")),
+						};
+
+						let from = H160::from(H256::from(sp_core::keccak_256(&pubkey)));
+
+						if self
+							.client
+							.runtime_api()
+							.has_account_public_key(block_hash, from)
+							.unwrap_or_default()
+						{
+							transaction
+						} else {
+							match transaction.encrypt(|msg, aad| {
+								tp_io::crypto::encrypted(msg, aad.as_fixed_bytes(), &pubkey)
+									.map_err(|_| ethereum::Error::BadEncrypte)
+							}) {
+								Ok(transaction) => transaction,
+								Err(_) => return Err(internal_err("cannot encrypted transaction")),
+							}
+						}
+					}
+					
+				},
 				Err(_) => return Err(internal_err("decode transaction failed")),
 			};
 		let transaction_hash = transaction.hash();
