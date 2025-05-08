@@ -371,8 +371,8 @@ where
 							}
 							Some(tp_ethereum::TransactionV2::EIP1559(t)) => UniqueSaturatedInto::<u64>::unique_saturated_into(
 									t
-										.max_priority_fee_per_gas
-										.min(t.max_fee_per_gas.saturating_sub(base_fee))
+										.max_priority_fee_per_gas()
+										.min(t.max_fee_per_gas().saturating_sub(base_fee))
 							),
 							None => 0,
 						},

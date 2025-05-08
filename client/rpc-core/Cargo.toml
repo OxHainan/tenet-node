@@ -9,6 +9,7 @@ repository.workspace = true
 
 [dependencies]
 ethereum-types = { workspace = true }
+ethereum = { workspace = true }
 fc-rpc-core = { workspace = true }
 jsonrpsee = { workspace = true, features = ["server", "macros"] }
 serde = { workspace = true }

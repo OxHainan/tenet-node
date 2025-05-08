@@ -296,9 +296,9 @@ where
 						.runtime_api()
 						.gas_price(substrate_hash)
 						.unwrap_or_default()
-						.checked_add(t.max_priority_fee_per_gas)
+						.checked_add(t.max_priority_fee_per_gas())
 						.unwrap_or_else(U256::max_value)
-						.min(t.max_fee_per_gas),
+						.min(t.max_fee_per_gas()),
 				};
 
 				let (normal_logs, _percept_logs): (LogType, LogType) = logs

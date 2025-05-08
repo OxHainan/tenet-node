@@ -259,8 +259,8 @@ pub mod pallet {
 		#[pallet::weight({
 			let without_base_extrinsic_weight = true;
 			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
-				let transaction_data: TransactionData = transaction.into();
-				transaction_data.gas_limit.unique_saturated_into()
+				let gas_limit: U256 = transaction.gas_limit();
+				gas_limit.unique_saturated_into()
 			}, without_base_extrinsic_weight)
 		})]
 		pub fn transact(
@@ -406,13 +406,37 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn register_public(origin: H160, transaction: &Transaction) {
-		let pubkey = Self::recover_public(transaction).unwrap();
-		AccountPublic::<T>::insert(origin, pubkey.to_vec());
+		if Self::has_registered(origin) {
+			AccountPublic::<T>::remove(origin);
+		} else {
+			let pubkey = Self::recover_public(transaction).unwrap();
+			AccountPublic::<T>::insert(origin, pubkey.to_vec());
 
-		Self::deposit_event(Event::RegisterPublic {
-			from: origin,
-			public_key: pubkey.to_vec(),
-		})
+			Self::deposit_event(Event::RegisterPublic {
+				from: origin,
+				public_key: pubkey.to_vec(),
+			})
+		}
+	}
+
+	fn has_registered(origin: H160) -> bool {
+		AccountPublic::<T>::contains_key(origin)
+	}
+
+	fn transact_essential(transaction: &Transaction) -> Option<ethereum::TransactionEssentials> {
+		if transaction.is_universal() {
+			return transaction.essentials().ok();
+		}
+
+		let pubkey = transaction
+			.recover_public_key(sp_io::crypto::secp256k1_ecdsa_recover)
+			.ok()?;
+		transaction
+			.essentials_with_decrypt(|msg, aad| {
+				tp_io::crypto::decrypted(msg, aad.as_fixed_bytes(), &pubkey)
+					.map_err(|_| ethereum::Error::BadDecrypte)
+			})
+			.ok()
 	}
 
 	fn store_block(post_log: Option<PostLogContent>, block_number: U256) {
@@ -514,7 +538,11 @@ impl<T: Config> Pallet<T> {
 		origin: H160,
 		transaction: &Transaction,
 	) -> TransactionValidity {
-		let transaction_data: TransactionData = transaction.into();
+		let essential = Self::transact_essential(&transaction).ok_or(
+			InvalidTransaction::Custom(TransactionValidationError::InvalidSignature as u8),
+		)?;
+
+		let transaction_data = TransactionData::convert(transaction.chain_id(), &essential);
 		let transaction_nonce = transaction_data.nonce;
 		let (weight_limit, proof_size_base_cost) = Self::transaction_weight(&transaction_data);
 		let (base_fee, _) = T::FeeCalculator::min_gas_price();
@@ -569,6 +597,16 @@ impl<T: Config> Pallet<T> {
 			// Unreachable because already validated. Gracefully handle.
 			_ => return Err(InvalidTransaction::Payment.into()),
 		};
+
+		// check transac meet confidentiality requirements
+		if AccountPublic::<T>::contains_key(origin) && transaction.is_universal() {
+			if transaction.action() != ethereum::TransactionAction::Create {
+				return Err(InvalidTransaction::Custom(
+					TransactionValidationError::UnknownError as u8,
+				)
+				.into());
+			}
+		}
 
 		// The tag provides and requires must be filled correctly according to the nonce.
 		let mut builder = ValidTransactionBuilder::default()
@@ -778,72 +816,13 @@ impl<T: Config> Pallet<T> {
 		transaction: &Transaction,
 		config: Option<evm::Config>,
 	) -> Result<(Option<H160>, Option<H160>, CallOrCreateInfo), DispatchErrorWithPostInfo> {
-		let transaction_data: TransactionData = transaction.into();
+		let essential = Self::transact_essential(&transaction).unwrap_or_default();
+		let transaction_data = TransactionData::convert(transaction.chain_id(), &essential);
 		let (weight_limit, proof_size_base_cost) = Self::transaction_weight(&transaction_data);
 		let is_transactional = true;
 		let validate = false;
 
-		let (
-			input,
-			value,
-			gas_limit,
-			max_fee_per_gas,
-			max_priority_fee_per_gas,
-			nonce,
-			action,
-			access_list,
-		) = {
-			match transaction {
-				// max_fee_per_gas and max_priority_fee_per_gas in legacy and 2930 transactions is
-				// the provided gas_price.
-				Transaction::Legacy(t) => (
-					t.input.clone(),
-					t.value,
-					t.gas_limit,
-					Some(t.gas_price),
-					Some(t.gas_price),
-					Some(t.nonce),
-					t.action,
-					Vec::new(),
-				),
-				Transaction::EIP2930(t) => {
-					let access_list: Vec<(H160, Vec<H256>)> = t
-						.access_list
-						.iter()
-						.map(|item| (item.address, item.storage_keys.clone()))
-						.collect();
-					(
-						t.input.clone(),
-						t.value,
-						t.gas_limit,
-						Some(t.gas_price),
-						Some(t.gas_price),
-						Some(t.nonce),
-						t.action,
-						access_list,
-					)
-				}
-				Transaction::EIP1559(t) => {
-					let access_list: Vec<(H160, Vec<H256>)> = t
-						.access_list
-						.iter()
-						.map(|item| (item.address, item.storage_keys.clone()))
-						.collect();
-					(
-						t.input.clone(),
-						t.value,
-						t.gas_limit,
-						Some(t.max_fee_per_gas),
-						Some(t.max_priority_fee_per_gas),
-						Some(t.nonce),
-						t.action,
-						access_list,
-					)
-				}
-			}
-		};
-
-		match action {
+		match essential.action {
 			tp_ethereum::TransactionAction::Call(target) => {
 				if target == H160::from_low_u64_be(1026) {
 					Self::register_public(from, transaction);
@@ -852,13 +831,17 @@ impl<T: Config> Pallet<T> {
 				let res = match T::Runner::call(
 					from,
 					target,
-					input,
-					value,
-					gas_limit.unique_saturated_into(),
-					max_fee_per_gas,
-					max_priority_fee_per_gas,
-					nonce,
-					access_list,
+					essential.input,
+					essential.value,
+					essential.gas_limit.unique_saturated_into(),
+					essential.max_fee_per_gas,
+					essential.max_priority_fee_per_gas,
+					essential.nonce,
+					essential
+						.access_list
+						.into_iter()
+						.map(|list| (list.address, list.storage_keys))
+						.collect(),
 					is_transactional,
 					validate,
 					weight_limit,
@@ -882,13 +865,17 @@ impl<T: Config> Pallet<T> {
 			tp_ethereum::TransactionAction::Create => {
 				let res = match T::Runner::create(
 					from,
-					input,
-					value,
-					gas_limit.unique_saturated_into(),
-					max_fee_per_gas,
-					max_priority_fee_per_gas,
-					nonce,
-					access_list,
+					essential.input,
+					essential.value,
+					essential.gas_limit.unique_saturated_into(),
+					essential.max_fee_per_gas,
+					essential.max_priority_fee_per_gas,
+					essential.nonce,
+					essential
+						.access_list
+						.into_iter()
+						.map(|list| (list.address, list.storage_keys))
+						.collect(),
 					is_transactional,
 					validate,
 					weight_limit,
@@ -920,7 +907,11 @@ impl<T: Config> Pallet<T> {
 		origin: H160,
 		transaction: &Transaction,
 	) -> Result<(), TransactionValidityError> {
-		let transaction_data: TransactionData = transaction.into();
+		let essential = Self::transact_essential(&transaction).ok_or(
+			InvalidTransaction::Custom(TransactionValidationError::InvalidSignature as u8),
+		)?;
+
+		let transaction_data = TransactionData::convert(transaction.chain_id(), &essential);
 		let (weight_limit, proof_size_base_cost) = Self::transaction_weight(&transaction_data);
 		let (base_fee, _) = T::FeeCalculator::min_gas_price();
 		let (who, _) = pallet_evm::Pallet::<T>::account_basic(&origin);
@@ -942,6 +933,16 @@ impl<T: Config> Pallet<T> {
 		.and_then(|v| v.with_base_fee())
 		.and_then(|v| v.with_balance_for(&who))
 		.map_err(|e| TransactionValidityError::Invalid(e.0))?;
+
+		// check transac meet confidentiality requirements
+		if AccountPublic::<T>::contains_key(origin) && transaction.is_universal() {
+			if transaction.action() != ethereum::TransactionAction::Create {
+				return Err(InvalidTransaction::Custom(
+					TransactionValidationError::UnknownError as u8,
+				)
+				.into());
+			}
+		}
 
 		Ok(())
 	}

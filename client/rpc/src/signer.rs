@@ -138,10 +138,11 @@ impl EthSigner for EthDevSigner {
 						let rs = signature.serialize();
 						let r = H256::from_slice(&rs[0..32]);
 						let s = H256::from_slice(&rs[32..64]);
-						transaction = Some(EthereumTransaction::EIP1559(
-							tp_ethereum::EIP1559Transaction {
-								chain_id: m.chain_id,
-								nonce: m.nonce,
+						transaction =
+						Some(EthereumTransaction::EIP1559(ethereum::EIP1559Transaction {
+							chain_id: m.chain_id,
+							nonce: m.nonce,
+							method: ethereum::TransactionMethod::Universal(ethereum::UniversalTransaction { 				
 								max_priority_fee_per_gas: m.max_priority_fee_per_gas,
 								max_fee_per_gas: m.max_fee_per_gas,
 								gas_limit: m.gas_limit,
@@ -149,11 +150,11 @@ impl EthSigner for EthDevSigner {
 								value: m.value,
 								input: m.input.clone(),
 								access_list: m.access_list,
-								odd_y_parity: recid.serialize() != 0,
-								r,
-								s,
-							},
-						));
+							}),
+							odd_y_parity: recid.serialize() != 0,
+							r,
+							s,
+						}));
 					}
 				}
 				break;

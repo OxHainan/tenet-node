@@ -10,7 +10,7 @@ repository.workspace = true
 [dependencies]
 env_logger = "0.10.0"
 ethabi = "18.0.0"
-ethereum = { workspace = true, features = ["with-codec"] }
+ethereum = { workspace = true, features = ["with-scale"] }
 ethereum-types = { workspace = true }
 hex = "0.4.3"
 hex-literal = "0.3.4"
